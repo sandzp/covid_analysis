@@ -41,3 +41,6 @@ vignettes/*.pdf
 # Large files
 *.pdf
 *.xlsx
+
+# Webpages
+*.html
