@@ -1,0 +1,558 @@
+---
+title: "w203_lab2: regression models draft"
+output: html_notebook
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#install.packages("stargazer")
+library(stargazer)
+library(tidyverse)
+library(sandwich)
+```
+
+```{r data schema}
+schema <- cols(
+  state = "c",
+  cases_total = "i",
+  cases_last_7_days = "i",
+  case_rate = "n",
+  case_rate_last_7_days = "n",
+  deaths_total = "i",
+  deaths_last_7_days = "i",
+  death_rate = "n",
+  death_rate_last_7_days = "n",
+  tests_total = "i",
+  tests_positive = col_factor(
+    levels = c("0-5%", "6-10%", "11-20%"),
+    ordered = TRUE
+    ),
+  test_rate = "i",
+  white_cases = "i",
+  white_pop = "i",
+  black_cases = "i",
+  black_pop = "i",
+  hispanic_cases = "i",
+  hispanic_pop = "i",
+  other_cases = "i",
+  other_pop = "i",
+  white_deaths = "i",
+  black_deaths = "i",
+  hispanic_deaths = "i",
+  other_deaths = "i",
+  emerg_date = col_date(format = "%d/%m/%Y"),
+  beg_bus_close_date = col_date(format = "%d/%m/%Y"),
+  end_bus_close_date = col_date(format = "%d/%m/%Y"),
+  bus_close_days = "i",
+  beg_shelter_date = col_date(format = "%d/%m/%Y"),
+  end_shelter_date = col_date(format = "%d/%m/%Y"),
+  shelter_days = "i",
+  mask_date = col_date(format = "%d/%m/%Y"),
+  mask_use = "l",
+  mask_legal = "l",
+  beg_maskbus_date = col_date(format = "%d/%m/%Y"),
+  end_maskbus_date = col_date(format = "%d/%m/%Y"),
+  maskbus_use = "l",
+  gov_party = "l",
+  pop_dens = "n",
+  pop_total = "i",
+  pre_cond_total = "i",
+  serious_illness_pct = "n",
+  all_cause_deaths_total = "i",
+  homeless_total = "i",
+  medicaid_pct = "i",
+  life_expectancy = "n",
+  unemployment_rate = "n",
+  poverty_rate = "n",
+  weekly_UI_max_amount = "i",
+  household_income = "i",
+  age_0_18 = "i",
+  age_19_25 = "i",
+  age_26_34 = "i",
+  age_35_54 = "i",
+  age_55_64 = "i",
+  age_65 = "i",
+  mob_RR = "i",
+  mob_GP = "i",
+  mob_PK = "i",
+  mob_TS = "i",
+  mob_WP = "i",
+  mob_RS = "i"
+)
+```
+
+```{r csv import}
+df <- read_delim(
+  file = "clean_covid_19_LB_version.csv",
+  delim = ";",
+  col_names = TRUE,
+  col_types = schema,
+  na = ""
+  )
+```
+
+Question: Should we include test_rate (or any transformation of it) as an initial variable on our model?
+
+Answer: Yes, we should include sqrt_test_rate on our initial model version
+
+```{r test_rate linear relationship}
+plot1 <- df %>%
+  ggplot(aes(y = case_rate, x = test_rate)) +
+  geom_point() +
+  labs(
+    title = "Relationship between Test Rate and Case Rate by state",
+    x = "Test Rate per 100K",
+    y = "Case Rate per 100K"
+  )
+```
+
+```{r test_rate squared relationship}
+plot2 <- df %>%
+  ggplot(aes(y = case_rate, x = test_rate^2)) +
+  geom_point() +
+  labs(
+    title = "Relationship between Squared Test Rate and Case Rate by state",
+    x = "Squared Test Rate per 100K",
+    y = "Case Rate per 100K"
+  )
+```
+
+```{r creating sqrt_test_rate}
+df$sqrt_test_rate = df$test_rate^2
+```
+
+```{r alternatives for model version #1}
+
+mod1_1 <- lm(case_rate ~ 
+             mask_use, 
+           data = df
+           )
+
+mod1_2 <- lm(case_rate ~
+             mask_use +
+             test_rate,
+           data = df
+           )
+
+mod1_3 <- lm(case_rate ~
+             mask_use +
+             sqrt_test_rate,
+           data = df
+           )
+
+std_errors = list(
+  sqrt(diag(vcovHC(mod1_1))), 
+  sqrt(diag(vcovHC(mod1_2))), 
+  sqrt(diag(vcovHC(mod1_3)))
+  )
+
+stargazer(mod1_1, mod1_2, mod1_3, se = std_errors, type = "text")
+```
+
+Question: Should we include pop_dens as an another initial variable on our model on top of test_rate?
+
+Answer: No, we should not add pop_dens to our regression model
+
+```{r pop_dens linear relationship}
+plot3 <- df %>%
+  ggplot(aes(y = case_rate, x = pop_dens)) +
+  geom_point() +
+  labs(
+    title = "Relationship between Population Density and Case Rate by state",
+    x = "Population Density",
+    y = "Case Rate per 100K"
+  )
+```
+
+```{r pop_dens log relationship}
+plot4 <- df %>%
+  ggplot(aes(y = case_rate, x = log(pop_dens))) +
+  geom_point() +
+  labs(
+    title = "Relationship between Log Population Density and Case Rate by state",
+    x = "Log Population Density",
+    y = "Case Rate per 100K"
+  )
+```
+
+```{r alternatives for model version #2}
+
+mod2_1 <- lm (case_rate ~
+                mask_use +
+                sqrt_test_rate,
+              data = df
+                )
+
+mod2_2 <- lm (case_rate ~
+                mask_use +
+                sqrt_test_rate +
+                pop_dens,
+              data = df
+                )
+
+mod2_3 <- lm (case_rate ~
+                mask_use +
+                sqrt_test_rate +
+                log(pop_dens),
+              data = df
+                )
+
+std_errors = list(
+  sqrt(diag(vcovHC(mod2_1))), 
+  sqrt(diag(vcovHC(mod2_2))), 
+  sqrt(diag(vcovHC(mod2_3)))
+  )
+
+stargazer(mod2_1, mod2_2, mod2_3, se = std_errors, type = "text")
+```
+
+Question: Should we include any variable to control for age demographics? If yes, which variable does the better job in improving our model explanability?
+
+Answer: Yes, we should include age_below_25
+
+```{r variance-covariance matrix of case_rate vs. age variables}
+var(df[ ,c(4, 51:56)])
+```
+
+```{r creating age_below_25 and age_above_55}
+df$age_below_25 = df$age_0_18 + df$age_19_25
+df$age_above_55 = df$age_55_64 + df$age_65
+```
+
+```{r variance-covariance matrix or case_rate vs. new age variables}
+var(df[ ,c(4, 64:65)])
+```
+
+```{r age_below_25 scatterplot}
+plot5 <- df %>%
+  ggplot(aes(y = case_rate, x = age_below_25)) +
+  geom_point() +
+  labs(
+    title = "Relationship between Pct Below 25 and Case Rate by state",
+    x = "% of Population Below 25",
+    y = "Case Rate per 100K"
+  )
+```
+
+```{r age_above_55 scatterplot}
+plot6 <- df %>%
+  ggplot(aes(y = case_rate, x = age_above_55)) +
+  geom_point() +
+  labs(
+    title = "Relationship between Pct Above 55 and Case Rate by state",
+    x = "% of Population Above 55",
+    y = "Case Rate per 100K"
+  )
+```
+
+```{r alternatives for model version #3}
+mod3_1 <- lm (case_rate ~
+                mask_use +
+                sqrt_test_rate,
+              data = df
+                )
+
+mod3_2 <- lm (case_rate ~
+                mask_use +
+                sqrt_test_rate +
+                age_below_25,
+              data = df
+                )
+
+mod3_3 <- lm (case_rate ~
+                mask_use +
+                sqrt_test_rate +
+                age_above_55,
+              data = df
+                )
+
+std_errors = list(
+  sqrt(diag(vcovHC(mod3_1))), 
+  sqrt(diag(vcovHC(mod3_2))), 
+  sqrt(diag(vcovHC(mod3_3)))
+  )
+
+stargazer(mod3_1, mod3_2, mod3_3, se = std_errors, type = "text")
+```
+
+Question: Should we include any variable to control for socio-economic differences among states? If yes, which variable does the better job in improving our model explanability?
+
+Answer: No, we should not include any variable to count for socio-economic differences
+
+```{r variance-covariance matrix of case_rate vs. socio-economic variables}
+var(df[ ,c(4, 44, 47, 48, 50)], na.rm = TRUE)
+```
+
+```{r homeless_total scatterplot}
+plot7 <- df %>%
+  ggplot(aes(y = case_rate, x = homeless_total)) +
+  geom_point() +
+  labs(
+    title = "Relationship between Homeless Population and Case Rate by state",
+    x = "Homeless Population",
+    y = "Case Rate per 100K"
+  )
+```
+
+```{r log homeless_total scatterplot}
+plot8 <- df %>%
+  ggplot(aes(y = case_rate, x = log(homeless_total))) +
+  geom_point() +
+  labs(
+    title = "Relationship between Log Homeless Population and Case Rate by state",
+    x = "Log Homeless Population",
+    y = "Case Rate per 100K"
+  )
+```
+
+```{r household income scatterplot, warning = FALSE}
+plot9 <- df %>%
+  ggplot(aes(y = case_rate, x = household_income)) +
+  geom_point() +
+  labs(
+    title = "Relationship between Median Household Income and Case Rate by state",
+    x = "Household Income",
+    y = "Case Rate per 100K"
+  )
+```
+
+```{r alternatives for model version #4}
+mod4_1 <- lm (case_rate ~
+                mask_use +
+                sqrt_test_rate +
+                age_below_25,
+              data = df
+                )
+
+mod4_2 <- lm (case_rate ~
+                mask_use +
+                sqrt_test_rate +
+                age_below_25 +
+                log(homeless_total),
+              data = df
+                )
+
+mod4_3 <- lm (case_rate ~
+                mask_use +
+                sqrt_test_rate +
+                age_below_25 +
+                household_income,
+              data = df
+                )
+
+std_errors = list(
+  sqrt(diag(vcovHC(mod4_1))), 
+  sqrt(diag(vcovHC(mod4_2))), 
+  sqrt(diag(vcovHC(mod4_3)))
+  )
+
+stargazer(mod4_1, mod4_2, mod4_3, se = std_errors, type = "text")
+```
+
+Question: Should we include any variable to control for race mix differences among states? If yes, which variable does the better job in improving our model explanability?
+
+Answer: Yes, we should include the log(black_pop)
+
+```{r variance-covariance matrix of case_rate vs. race variables}
+var(df[ ,c(4, 14, 16, 18)])
+```
+
+```{r black_pop scatterplot}
+plot10 <- df %>%
+  ggplot(aes(y = case_rate, x = black_pop)) +
+  geom_point() +
+  labs(
+    title = "Relationship between % of Blacks and Case Rate by state",
+    x = "% of Blacks in Total Population",
+    y = "Case Rate per 100K"
+  )
+```
+
+```{r log black_pop scatterplot}
+plot11 <- df %>%
+  ggplot(aes(y = case_rate, x = log(black_pop))) +
+  geom_point() +
+  labs(
+    title = "Relationship between Log % of Blacks and Case Rate by state",
+    x = "Log % of Blacks in Total Population",
+    y = "Case Rate per 100K"
+  )
+```
+
+```{r dealing with zeros on black_pop}
+df$black_pop[df$black_pop == 0] = 0.01
+```
+
+```{r lternatives for model version #5}
+mod5_1 <- lm (case_rate ~
+                mask_use +
+                sqrt_test_rate +
+                age_below_25,
+              data = df
+                )
+
+mod5_2 <- lm (case_rate ~
+                mask_use +
+                sqrt_test_rate +
+                age_below_25 +
+                black_pop,
+              data = df
+                )
+
+mod5_3 <- lm (case_rate ~
+                mask_use +
+                sqrt_test_rate +
+                age_below_25 +
+                log(black_pop),
+              data = df
+                )
+
+std_errors = list(
+  sqrt(diag(vcovHC(mod5_1))), 
+  sqrt(diag(vcovHC(mod5_2))), 
+  sqrt(diag(vcovHC(mod5_3)))
+  )
+
+stargazer(mod5_1, mod5_2, mod5_3, se = std_errors, type = "text")
+```
+
+Question: Should we include any indicator from Google mobility? If yes, which variable does the better job in improving our model explanability?
+
+Answer: Yes, we should include the mob_TS variable 
+
+```{r variance-covariance matrix of case_rate vs. mobility variables, warning=FALSE}
+var(df[ ,c(4, 57:62)])
+```
+
+```{r mob_TS scatterplot}
+plot12 <- df %>%
+  ggplot(aes(y = case_rate, x = mob_TS)) +
+  geom_point() +
+  labs(
+    title = "Relationship between Mobility in Terminal Stations and Case Rate by state",
+    x = "Mobility in Terminal Stations",
+    y = "Case Rate per 100K"
+  )
+```
+
+```{r alternatives for model version #6, warning=FALSE}
+mod6_1 <- lm (case_rate ~
+                mask_use +
+                sqrt_test_rate +
+                age_below_25 +
+                log(black_pop),
+              data = df
+                )
+
+mod6_2 <- lm (case_rate ~
+                mask_use +
+                sqrt_test_rate +
+                age_below_25 +
+                log(black_pop) +
+                mob_TS,
+              data = df
+                )
+
+std_errors = list(
+  sqrt(diag(vcovHC(mod6_1))), 
+  sqrt(diag(vcovHC(mod6_2)))
+  )
+
+stargazer(mod6_1, mod6_2, se = std_errors, type = "text")
+```
+
+Question: Should we include any other variable related to policies adopted by states? If yes, which variable does the better job on improving our model explanability?
+
+Answer: No, we should not include any variable related to other policies
+
+```{r variance-covariance matrix of case_rate vs. policies variables, warning=FALSE}
+var(df[,c(4, 28, 31, 34, 37, 38)], na.rm=TRUE)
+```
+
+```{r shelter_days scatteplot, warning=FALSE}
+plot13 <- df %>%
+  ggplot(aes(y = case_rate, x = shelter_days)) +
+  geom_point() +
+  labs(
+    title = "Relationship between Shelter in Place and Case Rate by state",
+    x = "Number of Days of Shelter in Place",
+    y = "Case Rate per 100K"
+  )
+```
+
+```{r alternatives for model version #7, warning=FALSE}
+mod7_1 <- lm (case_rate ~
+                mask_use +
+                sqrt_test_rate +
+                age_below_25 +
+                log(black_pop) +
+                mob_TS,
+              data = df
+                )
+
+mod7_2 <- lm (case_rate ~
+                mask_use +
+                sqrt_test_rate +
+                age_below_25 +
+                log(black_pop) +
+                mob_TS +
+                shelter_days,
+              data = df
+                )
+
+std_errors = list(
+  sqrt(diag(vcovHC(mod7_1))), 
+  sqrt(diag(vcovHC(mod7_2)))
+  )
+
+stargazer(mod7_1, mod7_2, se = std_errors, type = "text")
+```
+
+Question: What should be our final three model versions?
+
+Answer:
+model_1 ~ mask_use + sqrt_test_rate
+model_2 ~ mask_use + sqrt_test_rate + below_25 + log(black_pop)
+model_3 ~ mask_use + sqrt_test_rate + below_25 + log(black_pop) + shelter_days + bus_close_days
+
+model_1 is point of departure
+model_2 is our best model
+model_3 is aimed to stress the significance of our coefficient when we add another policies that compete for variability with mask_use
+
+
+```{r, warning=FALSE}
+mod8_1 <- lm (case_rate ~
+                mask_use +
+                sqrt_test_rate,
+              data = df
+                )
+
+mod8_2 <- lm (case_rate ~
+                mask_use +
+                sqrt_test_rate +
+                age_below_25 +
+                log(black_pop) +
+                mob_TS,
+              data = df
+                )
+
+mod8_3 <- lm (case_rate ~
+                mask_use +
+                sqrt_test_rate +
+                age_below_25 +
+                log(black_pop) +
+                mob_TS +
+                shelter_days +
+                bus_close_days,
+              data = df
+                )
+
+std_errors = list(
+  sqrt(diag(vcovHC(mod8_1))), 
+  sqrt(diag(vcovHC(mod8_2))),
+  sqrt(diag(vcovHC(mod8_3)))
+  )
+
+stargazer(mod8_1, mod8_2, mod8_3, se = std_errors, type = "text")
+```
+
