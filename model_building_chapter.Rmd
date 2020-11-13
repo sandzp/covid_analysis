@@ -233,7 +233,7 @@ Under a significance level of 0.05, we can accept the alternative hypotheses: $H
 
 Our estimate for $\beta_1$ (the coefficient of our variable of interest) is $\tilde \beta_1 = -940.7$, with a standard error of 284.9 and a p-value of 0.0006. It continues to be statistically significant and with an estimated value that changed little from **Model 2** (-961.4) to **Model 3** (-940.7).
 
-```{r model_2 coefficient test}
+```{r model_3 coefficient test}
 coeftest(model_3, vcovHC = vcovHC(model_3, type = "HC3"))
 ```
 
