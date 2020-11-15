@@ -124,7 +124,7 @@ Observations that were marked as "< 0.01" were rounded up to 0.01 for a log tran
 
 # Exploratory Data Analysis
 
-Based on our causal model, mask use should lead to a decrease in the number of covid cases. The boxplot below suggests that this initial assumption holds to some degree.
+Based on our causal model, mask use should lead to a decrease in the number of covid cases. The boxplot below suggests that this initial assumption at least holds to some degree.
 
 ```{r case rate vs mask use}
 df %>%
@@ -136,6 +136,43 @@ df %>%
     y = "Case Rate per 100K"
   )
 ```
+
+COVID-19 is a virus that spreads from person to person and the first stop gaps implemented were the closing of non-essential businesses and a Shelter-in-Place (SIP) mandate. A square-root transformation of the data better interprets the data as the correlation increases.
+
+```{r warning=FALSE}
+df %>%
+  ggplot(aes(y = case_rate, x = shelter_days)) +
+  geom_point() +
+  labs(
+    title = "Relationship between Days Sheltered-in-Place and Case Rate by state",
+    x = "Number of Days in SIP",
+    y = "Case Rate per 100K"
+  )
+
+sip <- lm(case_rate ~ shelter_days, data = df)
+sqrt_sip <- lm(case_rate ~ sqrt(shelter_days), data = df)
+summary(sip)$r.squared
+summary(sqrt_sip)$r.squared
+```
+
+Similarly, the number of days a non-essential business was closed would greatly reduce the number of human-human interactions. A log transformation of the number of businesses days closed also serves to increase the correlation slightly.
+
+```{r warning=FALSE}
+df %>%
+  ggplot(aes(y = case_rate, x = bus_close_days)) +
+  geom_point() +
+  labs(
+    title = "Relationship between Days Businesses Closed and Case Rate by state",
+    x = "Number of Days Businesses Closed",
+    y = "Case Rate per 100K"
+  )
+
+sip <- lm(case_rate ~ bus_close_days, data = df)
+log_sip <- lm(case_rate ~ log(bus_close_days), data = df)
+summary(sip)$r.squared
+summary(log_sip)$r.squared
+```
+
 
 The number of positive cases a state has is strictly dependent on the number of tests administered. From the scatter plot below, we do see a positive relationship between the number of tests administered and the number of cases. Log and square-root transformations do not lead to a higher correlation therefore the variable is left as is.
 
@@ -213,28 +250,22 @@ summary(blk_pop)$r.squared
 summary(log_blk_pop)$r.squared
 ```
 
-Included in the dataset is the Google mobility metric regarding the change in activity of popular spots (retail, groceries, parks, etc.,). We find that the highest correlation of the mobility variables lies with the change in Transit Stations (mob_TS).
+Included in the dataset is the Google Human Mobility metric regarding the change in activity of popular spots (retail, groceries, parks, etc.,). We find that the highest correlation of the mobility variables lies with the change in Transit Stations (mob_TS). Oddly enough, Wyoming is one of three states with a positive change in transit station use. Wyoming also has by far the largest change at 21% with South Dakota next at 3%. 
 
 ```{r variance-covariance matrix of case_rate vs. mobility variables, warning=FALSE}
 var(df[ ,c(4, 57:62)], na.rm=TRUE)
 ```
 
-
-
-Surprisingly, the population density of a state has little to no correlation to the number of cases per capita in that state.
-
-```{r pop_dens linear relationship, warning=FALSE}
+```{r warning= FALSE}
 df %>%
-  ggplot(aes(y = case_rate, x = log(pop_dens))) +
+  ggplot(aes(y = case_rate, x = mob_TS)) +
   geom_point() +
   labs(
-    title = "Relationship between Population Density and Case Rate by state",
-    x = "log of Population Density",
+    title = "Relationship Between Huamn Mobility: Transit Stations and Case Rate by state",
+    x = "Percentage Change in Human Mobility: Transit Stations",
     y = "Case Rate per 100K"
   )
 ```
-
-
 
 # Model Building
 
