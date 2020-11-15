@@ -1,0 +1,346 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#install.packages("stargazer")
+library(stargazer)
+library(tidyverse)
+library(sandwich)
+```
+
+```{r data schema, warning=FALSE}
+schema <- cols(
+  state = "c",
+  cases_total = "i",
+  cases_last_7_days = "i",
+  case_rate = "n",
+  case_rate_last_7_days = "n",
+  deaths_total = "i",
+  deaths_last_7_days = "i",
+  death_rate = "n",
+  death_rate_last_7_days = "n",
+  tests_total = "i",
+  tests_positive = col_factor(
+    levels = c("0-5%", "6-10%", "11-20%"),
+    ordered = TRUE
+    ),
+  test_rate = "i",
+  white_cases = "i",
+  white_pop = "i",
+  black_cases = "i",
+  black_pop = "i",
+  hispanic_cases = "i",
+  hispanic_pop = "i",
+  other_cases = "i",
+  other_pop = "i",
+  white_deaths = "i",
+  black_deaths = "i",
+  hispanic_deaths = "i",
+  other_deaths = "i",
+  emerg_date = col_date(format = "%d/%m/%Y"),
+  beg_bus_close_date = col_date(format = "%d/%m/%Y"),
+  end_bus_close_date = col_date(format = "%d/%m/%Y"),
+  bus_close_days = "i",
+  beg_shelter_date = col_date(format = "%d/%m/%Y"),
+  end_shelter_date = col_date(format = "%d/%m/%Y"),
+  shelter_days = "i",
+  mask_date = col_date(format = "%d/%m/%Y"),
+  mask_use = "i",
+  mask_legal = "l",
+  beg_maskbus_date = col_date(format = "%d/%m/%Y"),
+  end_maskbus_date = col_date(format = "%d/%m/%Y"),
+  maskbus_use = "l",
+  gov_party = col_factor(
+    levels = c("R", "D"),
+    ordered = FALSE
+  ),
+  pop_dens = "n",
+  pop_total = "i",
+  pre_cond_total = "i",
+  serious_illness_pct = "n",
+  all_cause_deaths_total = "i",
+  homeless_total = "i",
+  medicaid_pct = "i",
+  life_expectancy = "n",
+  unemployment_rate = "n",
+  poverty_rate = "n",
+  weekly_UI_max_amount = "i",
+  household_income = "i",
+  age_0_18 = "i",
+  age_19_25 = "i",
+  age_26_34 = "i",
+  age_35_54 = "i",
+  age_55_64 = "i",
+  age_65 = "i",
+  mob_RR = "i",
+  mob_GP = "i",
+  mob_PK = "i",
+  mob_TS = "i",
+  mob_WP = "i",
+  mob_RS = "i"
+)
+```
+
+```{r csv import, warning=FALSE}
+df <- read_delim(
+  file = "clean_covid_19_LB_version.csv",
+  delim = ";",
+  col_names = TRUE,
+  col_types = schema,
+  na = ""
+  )
+```
+
+```{r}
+df = mutate(df, percentage_homeless = (homeless_total/pop_total)*100)
+```
+
+### Omitted Variables Discussion
+
+As we are attempting to study an exceedingly-complex real life phenomenon, naturally there will be an element of bias in our models. Even though we selected what we believed to be the most appropriate variables influencing the COVID-19 case rate per 100,000, which included a range of logistical, social, ethnic and population-based metrics (as provided in the dataset), it is impossible to completely predict the influences on our dependent variable - this is reflected in the model metrics, for example R2, which would be 1 if we could perfectly know and include all of the real-life variables contributing to the case rate per 100,000.  
+
+As such, we have selected several omitted variables that we believe to contribute to the COVID-19 test rate. Some of these are included in the dataset, while others are phenomena that we do not have any information regarding. Though we can predict the potential relationship between the omitted variables and the dependent and independent variables for all of our suggested omitted variables, we can only test the veracity of our predictions for the former. We discuss the omitted variables in relation to our "most complete" models, i.e. ones with what we believe to be the optimal number of explanatory variables. 
+
+The seven independent variables included in this model are **Mandatory Mask Use**, **Test Rate per 100,000 habitants**, **Percentage of Population Below 25 Years Old**, **Log of Percentage of Black Ethnicity in Total Population**, and **Human Mobility Change in Transit Stations**, which have all been discussed in relation to homelessness as an omitted variable, previously. Additionally we include  **Number of Days of Shelter in Place**, and **Number of Days of Non-Essential Businesses Closure** in our model. 
+
+## Percentage of Homeless Population per State
+
+This variable is included in the dataset. 
+
+The percentage of homeless people per state population can broadly be categorized as a socioeconomic metric. Due to their circumstances, homeless people are less likely to be able to afford PPE, and have limited access to accommodation that suitably limits their exposure to others (if they have any accommodation at all). This theory is largely supported by [existing research](https://www.thelancet.com/journals/lanres/article/PIIS2213-2600(20)30396-9/fulltext), and consequently there have even been initiatives to provide temporary housing in an effort to control the spread of the infection among this group and the larger population. Nevertheless, these initiatives are inconsistent across regions, and in regions where they have been offered, [they have been unsuccessful](https://www.latimes.com/homeless-housing/story/2020-05-19/newsom-coronavirus-homeless-population-hotel-project-roomkey).
+
+As such we believe there is a positive correlation between homelessness and the dependent variable, i.e. COVID-19 case rate per 100,000. That is, in States with higher percentages of homeless people, the case rate per 100,000 will be higher. 
+
+**Mandatory Mask Use**
+
+According to this model, the enforcement of mask usage reduces the case rate by ~941 cases/100,000, holding the other variable constant.
+
+Though the relationship between mandatory mask usage and homelessness is likely very complex, as theoretically the level of homelessness should not really affect whether State government decides to issue a mandatory mask use law, for the purposes of this exercise, we will assume that there is a positive relationship between mask use enforcement and level of homelessness. I.e. States with higher numbers of homeless populations will be more aware of the risks of COVID-19 spreading among this vulnerable population and will therefore be more likely to be proactive in terms of public health measures, including mandating mask use. 
+
+Given that we predict a positive relationship between homelessness and the dependent variable (case rate per 100,000), and a positive relationship between homelessness and mask use enforcement, the overall predicted omitted variable bias on the model (disregarding the other independent variables) will be positive. That is, if we include the homelessness variable in the model, it will cause the mask use coefficient to tend towards 0, or become less significant. As the coefficient is already negative, we would expect to see it becoming less negative.  
+
+**Test Rate per 100,000 habitants**
+
+According to the results of the model, increasing the test rate per 100,000 by 1 unit will increase the number of positive tests per 100,000 by 0.023. 
+
+Again, the relationship between percentage homelessness in the state and the test rate per 100,000 is likely complex. Most States have moved to provide no-cost COVID-19 testing at health centers and pharmacies. Moreover, as with mask use, we assume that States with large homeless populations are also more proactive in terms of public health measures, including COVID-19 testing. Nevertheless, access to testing cannot remediate the impoverished conditions and inability to adequately isolate that many homeless experience. We therefore predict that there is a positive relationship between the percentage of homeless people in a state and the test rate per 100,000. 
+
+Given that we predict a positive relationship between homelessness and the dependent variable (case rate per 100,000) and a positive relationship between homelessness and mask use enforcement, we predict that the overall predicted omitted variable bias on the model (disregarding the other independent variables) will be positive. That is, if we include the homelessness variable in the model, it will cause the test rate coefficient to tend towards 0, or become less significant. 
+
+**Percentage of Population Below 25 Years Old**
+
+According to the results of the model, a one unit increase in the percentage of the population under the age of 25 increases the positive case rate by ~190 per 100,000 of the population, holding all other variables constant. 
+
+Looking at maps of distributions of each metric in the United States, [the distribution of young people, i.e. < 25 YO](https://www.kff.org/other/state-indicator/distribution-by-age/?activeTab=map&currentTimeframe=0&selectedDistributions=children-0-18&sortModel=%7B%22colId%22:%22Location%22,%22sort%22:%22asc%22%7D) seems to be concentrated primarily within the non-Coastal areas, whereas the coastal areas appear to have a [higher concentration of homeless people](https://www.usich.gov/tools-for-action/map/#fn[]=1400&fn[]=2800&fn[]=6200&fn[]=10000&fn[]=13200). Using these approximate trends, we propose that there is a negative relationship between homelessness and age. 
+
+Given that we predict a positive relationship between homelessness and the dependent variable (case rate per 100,000), and a negative relationship between homelessness and percentage of young people in the State, we predict that the overall predicted variable bias (disregarding all other independent variables) will be negative. That is, if we include the homelessness variable in the model, it will cause the percentage under 25 variable to tend away from zero, or become more significant. 
+
+**Log of Percentage of Black Ethnicity in Total Population**
+
+According to the results of the model, a one unit increase in the log of the percentage of black ethnicity in the population causes the rate of positive tests to increase by ~220 cases per 100,000 population. 
+
+Black people, despite comprising 13% of the U.S. population, [account for 40% of the homeless](https://endhomelessness.org/homelessness-in-america/what-causes-homelessness/inequality/). The reasons for this are well known and tied to complex socioeconomic factors. Subsequently, we predict a positive relationship between the percentage of black people within a state and the state percentage of homeless people. 
+
+Given that we predict a positive relationship between homelessness and the dependent variable (case rate per 100,000), and a positive relationship between homelessness and the percentage of black people within a population, we predict that the overall predicted omitted variable bias on the model (disregarding the other independent variables) will be positive. That is, if we include the homelessness variable in the model, it will cause the log of the percentage of black people coefficient to tend towards 0, or become less significant. 
+
+**Human Mobility Change in Transit Stations**
+
+According to the results of the model a one unit increase in the mobility change in transit stations variable causes the rate of positive tests to increase by ~16 cases per 100,000 population. 
+
+Transit stations are [well known congregation areas](https://www.latimes.com/local/lanow/la-me-metro-homeless-20180406-htmlstory.html) for homeless people. They may seek shelter or panhandle. As the pandemic has largely disrupted peoples work routines, with many now working from home, transit stations may have become less busy and may offer more space for homeless people to congregate or seek shelter. As a result, we predict a negative relationship between the human mobility change and homelessness variables.
+
+Given that we predict a positive relationship between homelessness and the dependent variable (case rate per 100,000), and a negative relationship between homelessness and mobility change in transit stations, we predict that the overall predicted variable bias (disregarding all other independent variables) will be negative. That is, if we include the homelessness variable in the model, it will cause the human mobility change variable to tend away from zero, or become more significant.
+
+**Number of Days of Shelter in Place**
+
+According to the results of the model a one unit increase in the number of shelter in place days reduces the case rate per 100,000 by ~0.8.
+
+As discussed in percentage of population below 25 discussion, the homeless population seems to be largely concentrated in the coastal areas. The coastal cities, being more metropolitan and having a higher proportion of educated population were likely to enforce evidence-based doctrines recommending institution of shelter in place rules earlier, relative to the non-coastal US states. As such, we predict there to be a positive correlation between percent of homeless population and the number of days of shelter in place. 
+
+Given that we predict a positive relationship between homelessness and the dependent variable (case rate per 100,000), and a positive relationship between homelessness and the number of days of shelter in place, we predict that the overall predicted omitted variable bias on the model (disregarding the other independent variables) will be positive. That is, if we include the homelessness variable in the model, it will cause the shelter days coefficient to tend towards 0, or become less significant. As the coefficient is already negative, we would expect to see it becoming less negative.
+
+**Number of Days of Non-Essential Businesses Closure**
+
+According to the results of the model a one unit increase in the number of days that non-essential businesses remained closed causes the case rate to increase by ~6.9 cases per 100,000. 
+
+For the same reasons that we discussed for the previous variable regarding shelter-in-place we predict a positive relationship between homeless population and number of business closure days. States more likely to have imposed strict rules regarding business and activity are more likely to be the ones with high levels of homeless population. 
+
+Given that we predict a positive relationship between homelessness and the dependent variable (case rate per 100,000), and a positive relationship between homelessness and the number of days of forced essential business closure, we predict that the overall predicted omitted variable bias on the model (disregarding the other independent variables) will be positive. That is, if we include the homelessness variable in the model, it will cause the business closure days coefficient to tend towards 0, or become less significant. 
+
+## Percentage of Hispanic Population per State
+
+This variable is included in the dataset. 
+
+People of Hispanic descent comprise 17% of the U.S. population, however their distribution varies by state, with the population ranging from [30-50% in some Southern and South Western States, to less than 5% in Mississipi and West Virginia](https://en.wikipedia.org/wiki/Demographics_of_Hispanic_and_Latino_Americans). Moreover, approximately [19% of Hispanic origin people are estimated to live in poverty](https://www.pewresearch.org/hispanic/fact-sheet/u-s-hispanics-facts-on-spanish-origin-latinos/#:~:text=%2450%2C000).-,Poverty%20status,%25%20of%20foreign%2Dborn%20Spaniards.). Together with black people, Hispanics comprise [55% of COVID-19 cases](https://salud-america.org/55-percent-of-u-s-coronavirus-cases-are-latino-black/). For these socioeconomic and demographic reasons, we believe that there is a positive relationship between the states with high percentage population of Hispanics and the number of positive COVID-19 cases per 100,000 population. 
+
+**Mandatory Mask Use**
+
+According to this model, the enforcement of mask usage reduces the case rate by ~941 cases/100,000, holding the other variable constant.
+
+Though [California](https://calmatters.org/explainers/coronavirus-california-explained-newsom/) and [New Mexico](https://www.scientificamerican.com/article/how-new-mexico-controlled-the-spread-of-covid-19/) States with large Hispanic diasporas implemented early evidence-based measures (including mandatory mask usage) to stem the spread of COVID-19. New York, another State with a large Hispanic population became the National epicenter for coronavirus relatively early on in the pandemic and as a result issued mandatory mask orders early-on. As such, we predict a positive correlation between the States that imposed mandatory mask wearing in public areas and the percentage of Hispanic population. 
+
+Given that we predict a positive relationship between Hispanic population and the dependent variable (case rate per 100,000), and a positive relationship between Hispanic population and mask use enforcement per state, the overall predicted omitted variable bias on the model (disregarding the other independent variables) will be positive. That is, if we include the percentage of Hispanic population variable in the model, it will cause the mask use coefficient to tend towards 0, or become less significant. As the coefficient is already negative, we would expect to see it becoming less negative. 
+
+**Test Rate per 100,000 habitants**
+
+According to this model, increasing the test rate per 100,000 by 1 unit will increase the number of positive tests per 100,000 by 0.023.
+
+Hispanics are often employed as [essential workers](https://abcnews.go.com/US/latinos-essential-jobs-disproportionately-affected-covid-19/story?id=71928362), in positions that may make them increasingly susceptible to COVID-19. We presume that States with high Hispanic populations have conducted appropriate public health initiatives to educate the Hispanic population in regards to COVID-19 testing (e.g. Spanish-language materials etc.), thus we predict a positive relationship between the population of Hispanics and test rate per 100,000 inhabitants. 
+
+Given that we predict a positive relationship between homelessness and the dependent variable (case rate per 100,000) and a positive relationship between test rate and population of Hispanic people, we predict that the overall predicted omitted variable bias on the model (disregarding the other independent variables) will be positive. That is, if we include the Hispanic population variable in the model, it will cause the test rate coefficient to tend towards 0, or become less significant.
+
+**Percentage of Population Below 25 Years Old**
+
+According to the results of the model, a one unit increase in the percentage of the population under the age of 25 increases the positive case rate by ~190 per 100,000 of the population, holding all other variables constant.
+
+[Approximately one third of the Spanish population in the U.S. is under the age of 18, while one quarter are millenials](https://www.pewresearch.org/hispanic/2016/04/20/the-nations-latino-population-is-defined-by-its-youth/). Due to the high proportion of young people, we predict a positive relationship between Hispanic population and percentage of population under age 25, per State. 
+
+Given that we predict a positive relationship between Hispanic population and the dependent variable (case rate per 100,000), and a positive relationship between Hispanic population and percentage of young people in the State, we predict that the overall predicted omitted variable bias on the model (disregarding the other independent variables) will be positive. That is, if we include the Hispanic population variable in the model, it will cause the percentage  coefficient to tend towards 0, or become less significant.
+
+**Log of Percentage of Black Ethnicity in Total Population**
+
+According to the results of the model, a one unit increase in the log of the percentage of black ethnicity in the population causes the rate of positive tests to increase by ~220 cases per 100,000 population.
+
+Looking at maps of distributions of [Hispanics](https://en.wikipedia.org/wiki/List_of_U.S._states_by_Hispanic_and_Latino_population#/media/File:Percent_of_Hispanic_and_Latino_population_by_state_in_2012.svg) compared with [Black ethnicity](https://en.wikipedia.org/wiki/List_of_U.S._states_and_territories_by_African-American_population#/media/File:African_American_by_state_in_the_USA_in_2010.svg), there seems to be a negative correlation, i.e. States with higher concentrations of Hispanics have lower concentrations of Black people and vice versa. 
+
+Given that we predict a postive relationship between Hispanic population and the dependent variable (case rate per 100,000), and a negative relationship between Hispanic people and the percentage of black people within a population, we predict that the overall predicted omitted variable bias on the model (disregarding the other independent variables) will be negative. That is, if we include the Hispanic population variable in the model, it will cause the log of Black ethnicity variable to tend away from zero, or become more significant.
+
+**Human Mobility Change in Transit Stations**
+
+According to the results of the model a one unit increase in the mobility change in transit stations variable causes the rate of positive tests to increase by ~16 cases per 100,000 population. 
+
+- How to relate hispanics with this?
+
+**Number of Days of Shelter in Place**
+
+According to the results of the model a one unit increase in the number of shelter in place days reduces the case rate per 100,000 by ~0.8.
+
+The three States with the longest running shelter-in-place orders (i.e. the ones that implemented it earliest) are California, New York and New Mexico. These three States also have some of the highest proportions of Hispanics in the country. We can take this as a general trend to predict that there is a positive relationship between the percentage of Hispanics in the population and number of shelter-in-place days. 
+
+Given that we predict a positive relationship between Hispanic population percentage and the dependent variable (case rate per 100,000), and a positive relationship between Hispanic population percentage and the number of days of shelter in place, we predict that the overall predicted omitted variable bias on the model (disregarding the other independent variables) will be positive. That is, if we include the Hispanic population percentage variable in the model, it will cause the shelter days coefficient to tend towards 0, or become less significant. As the coefficient is already negative, we would expect to see it becoming less negative.
+
+**Number of Days of Non-Essential Businesses Closure**
+
+According to the results of the model a one unit increase in the number of days that non-essential businesses remained closed causes the case rate to increase by ~6.9 cases per 100,000.
+
+It is likely that States concurrently issued shelter-in-place orders together with enforced closure of non-essential businesses. These States happened to also be ones with large Hispanic populations. Likewise, we also predict a positive relationship between number of days of non-essential business closure and percentage Hispanic population. 
+
+Given that we predict a positive relationship between Hispanic population percentage and the dependent variable (case rate per 100,000), and a positive relationship between Hispanic population percentage and the number of days of forced essential business closure, we predict that the overall predicted omitted variable bias on the model (disregarding the other independent variables) will be positive. That is, if we include the homelessness variable in the model, it will cause the business closure days coefficient to tend towards 0, or become less significant. 
+
+## Access to Healthcare
+
+The United States is the only developed nation that does not offer some kind of free public healthcare option. Consequently 8.5% of the population or 27.5 million are without health insurance. This may be due to underemployment, poverty, disabilites, or a myriad of other reasons. Uninsured essential jobs may result in exposure to COVID, as may living in sub-standard accomodation. We therefore predict that reduced access to healthcare (higher percentage of uninsured population) results in a higher rate of positive COVID-19 tests per 100,000 of population (a positive relationship). As COVID-19 testing is largely free at the State-level we assume access to testing is unrelated to having health insurance.  
+
+**Mandatory Mask Use**
+
+According to this model, the enforcement of mask usage reduces the case rate by ~941 cases/100,000, holding the other variable constant. 
+
+There are [16 States, all led by Republicans](https://undark.org/2020/10/06/16-states-dont-mandate-mask-use/) that have not implemented a mandatory mask order. Similarly, Republican-led States have also been hardest hit by the effects of globalization and a shifting National economy. These States therefore tend to have [higher rates of poverty](https://www.baltimoresun.com/opinion/editorial/bs-ed-0902-gop-states-underperform-20200831-kuquanxy4jd6zn55hqi76ery6i-story.html), and therefore will have higher percentage of uninsured individuals. We therefore predict that States with a higher percentage of uninsured in their populations will be less likely to enforce mandatory mask orders. 
+Given that we predict a positive relationship between the percentage of uninsured and the dependent variable (case rate per 100,000), and a negative relationship between access to healthcare and mask use enforcement, the overall predicted omitted variable bias on the model (disregarding the other independent variables) will be negative. That is, if we include a variable reflecting percentage uninsured, it will cause the mask use coefficient to tend away from 0, or become more significant. As the coefficient is already negative, we would expect to see it becoming more negative.  
+
+**Test Rate per 100,000 habitants**
+
+According to this model, increasing the test rate per 100,000 by 1 unit will increase the number of positive tests per 100,000 by 0.023.
+
+For the same reasons discussed previously, we predict that States with higher proportions of uninsured may also be less likely to implement proactive public health policies, including expanding access to testing. We therefore predict a negative relationship between the test rate per 100,000 population and the percentage of uninsured individuals in the population. 
+
+Given that we predict a positive relationship between the percentage of uninsured and the dependent variable (case rate per 100,000) and a negative relationship between percentage uninsured and test rate per 100,000 population, we predict that the overall predicted omitted variable bias on the model (disregarding the other independent variables) will be negative. That is, if we include the Hispanic population variable in the model, it will cause the test rate coefficient to tend away from 0, or become more significant.
+
+**Percentage of Population Below 25 Years Old**
+
+According to the results of the model, a one unit increase in the percentage of the population under the age of 25 increases the positive case rate by ~190 per 100,000 of the population, holding all other variables constant.
+
+In the United States, there appears to be an inverse relationship between [household income and birth rate](https://www.statista.com/statistics/241530/birth-rate-by-family-income-in-the-us/). In 2017 those earning under $10,000 annually had the highest birth rates relative to other income groups. As low income is related to lack of healthcare access, we therefore predict that high proportions of uninsured individuals is positively related to percentage of State population under 25. 
+
+Given that we predict a positive relationship between the percentage of uninsured and the dependent variable (case rate per 100,000), and a positive relationship between percentage uninsured and percentage of young people in the State, we predict that the overall predicted omitted variable bias on the model (disregarding the other independent variables) will be positive. That is, if we include the percentage uninsured variable in the model, it will cause the percentage  coefficient to tend towards 0, or become less significant.
+
+**Log of Percentage of Black Ethnicity in Total Population**
+
+According to the results of the model, a one unit increase in the log of the percentage of black ethnicity in the population causes the rate of positive tests to increase by ~220 cases per 100,000 population. 
+
+Despite positive efforts at the Federal and State levels, Black people are [more likely](https://www.kff.org/racial-equity-and-health-policy/issue-brief/changes-in-health-coverage-by-race-and-ethnicity-since-the-aca-2010-2018/) to be uninsured relative to Caucasians and Asians. As a result, we predict a positive relationship between the percentage of Black people per state and the percentage of uninsured. 
+
+Given that we predict a postive relationship between percentage of uninsured and the dependent variable (case rate per 100,000), and a positive relationship between the percentage of uninsured and the percentage of black people within a population, we predict that the overall predicted omitted variable bias on the model (disregarding the other independent variables) will be positive. That is, if we include the uninsured population variable in the model, it will cause the log of the percentage of black people coefficient to tend towards 0, or become less significant.
+
+**Human Mobility Change in Transit Stations**
+
+According to the results of the model a one unit increase in the mobility change in transit stations variable causes the rate of positive tests to increase by ~16 cases per 100,000 population. 
+
+**Number of Days of Shelter in Place**
+
+According to the results of the model a one unit increase in the number of shelter in place days reduces the case rate per 100,000 by ~0.8.
+
+As previously discussed, States with densely-populated cities were the earliest to be impacted by the pandemic, and also subsequently the earliest to lock-down. Nevertheless, these States are also some of the wealthier ones due to being finance or business hubs, with higher levels of employment. We therefore predict a positive relationship between number of days of shelter in place and number of uninsured individuals in the population. 
+
+Given that we predict a positive relationship between percentage of uninsured and the dependent variable (case rate per 100,000), and a positive relationship between percentage of uninsured percentage and the number of days of shelter in place, we predict that the overall predicted omitted variable bias on the model (disregarding the other independent variables) will be positive. That is, if we include the percentage of uninsured population percentage variable in the model, it will cause the shelter days coefficient to tend towards 0, or become less significant. As the coefficient is already negative, we would expect to see it becoming less negative.
+
+**Number of Days of Non-Essential Businesses Closure**
+
+According to the results of the model a one unit increase in the number of days that non-essential businesses remained closed causes the case rate to increase by ~6.9 cases per 100,000.
+
+Unlike the shelter-in-place orders, the States that resisted closure of essential businesses and attempted to preserve their economies were predominantly those led by Republicans, which also happen to be States with higher levels of poverty (previously discussed and cited). As such we predict a negative relationship between number of days of enforced business closure and percentage population of uninsured individuals. 
+
+Given that we predict a positive relationship between percentage of uninsured and the dependent variable (case rate per 100,000), and a negative relationship between percentage of uninsured percentage and the number of days of forced essential business closure, we predict that the overall predicted omitted variable bias on the model (disregarding the other independent variables) will be negative. That is, if we include the percentage of uninsured variable in the model, it will cause the business closure days coefficient to tend away from 0, or become more significant. 
+
+## Employment Data (ie. Essential vs. Non-essential work)
+
+**Mandatory Mask Use**
+
+According to this model, the enforcement of mask usage reduces the case rate by ~941 cases/100,000, holding the other variable constant.  
+
+**Test Rate per 100,000 habitants**
+
+According to this model, increasing the test rate per 100,000 by 1 unit will increase the number of positive tests per 100,000 by 0.023.
+
+**Percentage of Population Below 25 Years Old**
+
+According to the results of the model, a one unit increase in the percentage of the population under the age of 25 increases the positive case rate by ~190 per 100,000 of the population, holding all other variables constant.
+
+**Log of Percentage of Black Ethnicity in Total Population**
+
+According to the results of the model, a one unit increase in the log of the percentage of black ethnicity in the population causes the rate of positive tests to increase by ~220 cases per 100,000 population. 
+
+**Human Mobility Change in Transit Stations**
+
+According to the results of the model a one unit increase in the mobility change in transit stations variable causes the rate of positive tests to increase by ~16 cases per 100,000 population. 
+
+**Number of Days of Shelter in Place**
+
+According to the results of the model a one unit increase in the number of shelter in place days reduces the case rate per 100,000 by ~0.8.
+
+**Number of Days of Non-Essential Businesses Closure**
+
+According to the results of the model a one unit increase in the number of days that non-essential businesses remained closed causes the case rate to increase by ~6.9 cases per 100,000.
+
+## Education on testing
+
+**Mandatory Mask Use**
+
+According to this model, the enforcement of mask usage reduces the case rate by ~941 cases/100,000, holding the other variable constant.
+
+**Test Rate per 100,000 habitants**
+
+According to this model, increasing the test rate per 100,000 by 1 unit will increase the number of positive tests per 100,000 by 0.023.
+
+**Percentage of Population Below 25 Years Old**
+
+According to the results of the model, a one unit increase in the percentage of the population under the age of 25 increases the positive case rate by ~190 per 100,000 of the population, holding all other variables constant.
+
+**Log of Percentage of Black Ethnicity in Total Population**
+
+According to the results of the model, a one unit increase in the log of the percentage of black ethnicity in the population causes the rate of positive tests to increase by ~220 cases per 100,000 population. 
+
+**Human Mobility Change in Transit Stations**
+
+According to the results of the model a one unit increase in the mobility change in transit stations variable causes the rate of positive tests to increase by ~16 cases per 100,000 population. 
+
+**Number of Days of Shelter in Place**
+
+According to the results of the model a one unit increase in the number of shelter in place days reduces the case rate per 100,000 by ~0.8.
+
+**Number of Days of Non-Essential Businesses Closure**
+
+According to the results of the model a one unit increase in the number of days that non-essential businesses remained closed causes the case rate to increase by ~6.9 cases per 100,000.
