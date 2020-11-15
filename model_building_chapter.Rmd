@@ -97,6 +97,145 @@ df <- read_delim(
   )
 ```
 
+# Data Cleaning
+
+The data used in the model is taken from the provided covid_19 dataset. The final model uses eight variables that are either created from existing data or supplemented from online resources. Below are the adjustments made to variables that were either created or supplemented.
+
+*Mask Use*
+
+This binary/logical variable was created by assigning a 1 if the state had a mask mandate and 0 if it did not (based on the mask mandate date column). Some of the data from the mask mandate was missing and was manually research and populated.
+
+
+*Percent Age Below 25*
+
+This column was created by combining the 0-18 and 18-25 age groups. No other adjustments were made.
+
+*Days in Shelter-in-Place*
+
+The number of days each state was under the Shelter-in-Place mandate. This data was missing some data and supplemented by researching and populating the missing data. The column was creating by subtracting the end and start dates.
+
+*Days Businesses Closed*
+
+The number of days each state closed non-essential businesses. Similar to the days in SIP, missing data was populating through research of the state's specific mandates, then calculated by subtracting the end and start dates.
+
+*Percentage of Pouplation: Black*
+
+Observations that were marked as "< 0.01" were rounded up to 0.01 for a log transformation to be applied.
+
+# Exploratory Data Analysis
+
+Based on our causal model, mask use should lead to a decrease in the number of covid cases. The boxplot below suggests that this initial assumption holds to some degree.
+
+```{r case rate vs mask use}
+df %>%
+  ggplot(aes(y = case_rate, x = mask_use)) +
+  geom_boxplot() +
+  labs(
+    title = "Relationship between Mask Use and Case Rate by state",
+    x = "Mask Use",
+    y = "Case Rate per 100K"
+  )
+```
+
+The number of positive cases a state has is strictly dependent on the number of tests administered. From the scatter plot below, we do see a positive relationship between the number of tests administered and the number of cases. Log and square-root transformations do not lead to a higher correlation therefore the variable is left as is.
+
+```{r test_rate linear relationship, warning=FALSE}
+df %>%
+  ggplot(aes(y = case_rate, x = test_rate)) +
+  geom_point() +
+  labs(
+    title = "Relationship between Test Rate and Case Rate by state",
+    x = "Test Rate per 100K",
+    y = "Case Rate per 100K"
+  )
+```
+
+Next, we look at the correlation between case rate and age. From the covariance matrix below, age groups 0-18 and 65+ are not only the most extreme of the age groups, but covariances as well.
+
+```{r variance-covariance matrix of case_rate vs. age variables, warning=FALSE}
+var(df[ ,c(4, 51:56)], na.rm=TRUE)
+```
+
+```{r warning = FALSE}
+df %>%
+  ggplot(aes(y = case_rate, x = age_65)) +
+  geom_point() +
+  labs(
+    title = "Relationship above age 65 and Case Rate by state",
+    x = "% of Population at least age 65",
+    y = "Case Rate per 100K"
+  )
+```
+
+```{r warning = FALSE}
+df$age_below_25 = df$age_0_18 + df$age_19_25
+df %>%
+  ggplot(aes(y = case_rate, x = age_below_25)) +
+  geom_point() +
+  labs(
+    title = "Relationship between Pct Below 25 and Case Rate by state",
+    x = "% of Population Below 25",
+    y = "Case Rate per 100K"
+  )
+```
+
+We also examine the case rate vs ethnicity. The black population is much more correlated with case rate than any of the other ethnic groups. Being white is also negatively correlated with the case rate.
+
+```{r variance-covariance matrix of case_rate vs. ethnicity, warning=FALSE}
+var(df[ ,c(4,14,16,18,20)], na.rm=TRUE)
+```
+
+We more closely examine the correlation between black population percentage, the most highly correlated ethnicity variable, and case rate. From the graph below, we see that there is a slightly concaving arc as the proportion of black increases. ~~We apply a log transformation to see if the correlation increases and see that it does.~~
+
+```{r warning = FALSE}
+df$black_pop[df$black_pop == 0] = 0.01
+df %>%
+  ggplot(aes(y = case_rate, x = black_pop)) +
+  geom_point() +
+  labs(
+    title = "Percentage Black Ethnicity in Total Population and Case Rate by state",
+    x = "% of Population - Ethnicity: Black",
+    y = "Case Rate per 100K"
+  )
+
+df %>%
+  ggplot(aes(y = case_rate, x = log(black_pop))) +
+  geom_point() +
+  labs(
+    title = "Log Percentage Black Ethnicity in Total Population and Case Rate by state",
+    x = "Log(% of Population - Ethnicity: Black)",
+    y = "Case Rate per 100K"
+  )
+
+blk_pop <- lm(case_rate ~ black_pop, data = df)
+log_blk_pop <- lm(case_rate ~ log(black_pop), data = df)
+summary(blk_pop)$r.squared
+summary(log_blk_pop)$r.squared
+```
+
+Included in the dataset is the Google mobility metric regarding the change in activity of popular spots (retail, groceries, parks, etc.,). We find that the highest correlation of the mobility variables lies with the change in Transit Stations (mob_TS).
+
+```{r variance-covariance matrix of case_rate vs. mobility variables, warning=FALSE}
+var(df[ ,c(4, 57:62)], na.rm=TRUE)
+```
+
+
+
+Surprisingly, the population density of a state has little to no correlation to the number of cases per capita in that state.
+
+```{r pop_dens linear relationship, warning=FALSE}
+df %>%
+  ggplot(aes(y = case_rate, x = log(pop_dens))) +
+  geom_point() +
+  labs(
+    title = "Relationship between Population Density and Case Rate by state",
+    x = "log of Population Density",
+    y = "Case Rate per 100K"
+  )
+```
+
+
+
 # Model Building
 
 ## Model 1
@@ -154,8 +293,8 @@ case_rate = $\beta_0$ + $\beta_1$ * mask_use + $\beta_2$ * test_rate + $\beta_3$
 
 ```{r model_2 summary, warning = FALSE}
 # variable transformation - we may take this out later if performed on chapter 2
-df$age_below_25 = df$age_0_18 + df$age_19_25
-df$black_pop[df$black_pop == 0] = 0.01
+# took out age transformation
+# took out black pop
 
 model_2 <- lm(case_rate ~ mask_use + test_rate + age_below_25 + log(black_pop) + mob_TS, data = df)
 std_errors = list(
@@ -217,6 +356,8 @@ std_errors = list(
   sqrt(diag(vcovHC(model_3)))
 )
 stargazer(model_1, model_2, model_3, se = std_errors, type = "text", title = "Model 3 Summary")
+
+df$bus_close_days
 ```
 
 
@@ -233,7 +374,7 @@ Under a significance level of 0.05, we can accept the alternative hypotheses: $H
 
 Our estimate for $\beta_1$ (the coefficient of our variable of interest) is $\tilde \beta_1 = -940.7$, with a standard error of 284.9 and a p-value of 0.0006. It continues to be statistically significant and with an estimated value that changed little from **Model 2** (-961.4) to **Model 3** (-940.7).
 
-```{r model_2 coefficient test}
+```{r model_3 coefficient test}
 coeftest(model_3, vcovHC = vcovHC(model_3, type = "HC3"))
 ```
 
