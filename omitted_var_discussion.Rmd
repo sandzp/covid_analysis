@@ -118,7 +118,7 @@ As such we believe there is a positive correlation between homelessness and the 
 
 According to this model, the enforcement of mask usage reduces the case rate by ~941 cases/100,000, holding the other variable constant.
 
-Though the relationship between mandatory mask usage and homelessness is likely very complex, as theoretically the level of homelessness should not really affect whether State government decides to issue a mandatory mask use law, for the purposes of this exercise, we will assume that there is a positive relationship between mask use enforcement and level of homelessness. I.e. States with higher numbers of homeless populations will be more aware of the risks of COVID-19 spreading among this vulnerable population and will therefore be more likely to be proactive in terms of public health measures, including mandating mask use. 
+States with higher numbers of homeless populations in theory should be more aware of the risks of COVID-19 spreading among this vulnerable population and will therefore be more likely to be proactive in terms of public health measures, including mandating mask use. for the purposes of this exercise, we will assume that there is a positive relationship between mask use enforcement and level of homelessness.   
 
 Given that we predict a positive relationship between homelessness and the dependent variable (case rate per 100,000), and a positive relationship between homelessness and mask use enforcement, the overall predicted omitted variable bias on the model (disregarding the other independent variables) will be positive. That is, if we include the homelessness variable in the model, it will cause the mask use coefficient to tend towards 0, or become less significant. As the coefficient is already negative, we would expect to see it becoming less negative.  
 
@@ -126,9 +126,9 @@ Given that we predict a positive relationship between homelessness and the depen
 
 According to the results of the model, increasing the test rate per 100,000 by 1 unit will increase the number of positive tests per 100,000 by 0.023. 
 
-Again, the relationship between percentage homelessness in the state and the test rate per 100,000 is likely complex. Most States have moved to provide no-cost COVID-19 testing at health centers and pharmacies. Moreover, as with mask use, we assume that States with large homeless populations are also more proactive in terms of public health measures, including COVID-19 testing. Nevertheless, access to testing cannot remediate the impoverished conditions and inability to adequately isolate that many homeless experience. We therefore predict that there is a positive relationship between the percentage of homeless people in a state and the test rate per 100,000. 
+Most States have moved to provide no-cost COVID-19 testing at health centers and pharmacies. Moreover, as with mask use, we assume that States with large homeless populations are also more proactive in terms of public health measures, including COVID-19 testing. We therefore predict that there is a positive relationship between the percentage of homeless people in a state and the test rate per 100,000. 
 
-Given that we predict a positive relationship between homelessness and the dependent variable (case rate per 100,000) and a positive relationship between homelessness and mask use enforcement, we predict that the overall predicted omitted variable bias on the model (disregarding the other independent variables) will be positive. That is, if we include the homelessness variable in the model, it will cause the test rate coefficient to tend towards 0, or become less significant. 
+Given that we predict a positive relationship between homelessness and the dependent variable (case rate per 100,000) and a positive relationship between homelessness and test rate per 100,000 people, we predict that the overall predicted omitted variable bias on the model (disregarding the other independent variables) will be positive. That is, if we include the homelessness variable in the model, it will cause the test rate coefficient to tend towards 0, or become less significant. 
 
 **Percentage of Population Below 25 Years Old**
 
@@ -285,62 +285,126 @@ Unlike the shelter-in-place orders, the States that resisted closure of essentia
 
 Given that we predict a positive relationship between percentage of uninsured and the dependent variable (case rate per 100,000), and a negative relationship between percentage of uninsured percentage and the number of days of forced essential business closure, we predict that the overall predicted omitted variable bias on the model (disregarding the other independent variables) will be negative. That is, if we include the percentage of uninsured variable in the model, it will cause the business closure days coefficient to tend away from 0, or become more significant. 
 
-## Employment Data (ie. Essential vs. Non-essential work)
+## Population Density per Square Miles
+
+This variable is included in the dataset.
+
+Population density [varies by State](https://simple.wikipedia.org/wiki/List_of_U.S._states_by_population_density) across the United States. As expected, coastal States tend to have higher population densities, likely due to the presence of larger metropolitan areas within them. 
+
+A larger population density may mean that more people are concentrated within a smaller area, which may then translate into increased opportunity for the spread of COVID-19. Moreover, inner-cities and low-income areas are likely to have higher population densities per unit of area. As they may be inhabited by socioeconomic groups and ethnicities that are at increased risk of being impacted by COVID-19, we predict that a larger population density is positively related to the test rate per 100,000 population. 
 
 **Mandatory Mask Use**
 
 According to this model, the enforcement of mask usage reduces the case rate by ~941 cases/100,000, holding the other variable constant.  
 
+States hosting large cities are likely to be well aware of the risks of contracting COVID-19, especially if their cities have substantial areas of low-income housing or large concentrations of ethnic groups at increased risk of COVID-19. Subsequently they are more likely to impose mandatory mask-use policies. We predict that there is a positive relationship between mandatory mask use and population density.
+
+Given that we predict a positive relationship between population density and the dependent variable (case rate per 100,000), and a positive relationship between population density and mask use enforcement, the overall predicted omitted variable bias on the model (disregarding the other independent variables) will be positive. That is, if we include the population density variable in the model, it will cause the mask use coefficient to tend towards 0, or become less significant. As the coefficient is already negative, we would expect to see it becoming less negative.
+
 **Test Rate per 100,000 habitants**
 
 According to this model, increasing the test rate per 100,000 by 1 unit will increase the number of positive tests per 100,000 by 0.023.
+
+It is likely that States with high population densities will be more proactive in early-diagnosis and control of COVID-19 spread. Moreover, if these States have higher rates of poverty or concentrations of racial minorities, we believe they will offer enhanced public health initiatives. As such, we predict a positive relationship between population density and test rate per 100,000 inhabitants. 
+
+Given that we predict a positive relationship between population density and the dependent variable (case rate per 100,000) and a positive relationship between population density and test rate per 100,000 people, we predict that the overall predicted omitted variable bias on the model (disregarding the other independent variables) will be positive. That is, if we include the population density variable in the model, it will cause the test rate coefficient to tend towards 0, or become less significant.
 
 **Percentage of Population Below 25 Years Old**
 
 According to the results of the model, a one unit increase in the percentage of the population under the age of 25 increases the positive case rate by ~190 per 100,000 of the population, holding all other variables constant.
 
+Black people comprise [31% and 24% of the US population between the ages 0-21 and 22-37](https://www.pewresearch.org/fact-tank/2019/07/30/most-common-age-among-us-racial-ethnic-groups/), respectively. We therefore predict a positive relationship between percentage of population under 25 and population density.
+
+Given that we predict a positive relationship between the percentage of population density and the dependent variable (case rate per 100,000), and a positive relationship between percentage of population density and percentage of young people in the State, we predict that the overall predicted omitted variable bias on the model (disregarding the other independent variables) will be positive. That is, if we include the percentage population density variable in the model, it will cause the percentage of population coefficient to tend towards 0, or become less significant.
+
 **Log of Percentage of Black Ethnicity in Total Population**
 
 According to the results of the model, a one unit increase in the log of the percentage of black ethnicity in the population causes the rate of positive tests to increase by ~220 cases per 100,000 population. 
+
+For reasons previously discussed, we predict that more densely populated areas are also likely to have higher rates of poverty or be located in inner-Cities. Subsequently, we predict a positive relationship between the total population density and percentage of Black people within the populations. 
+
+Given that we predict a postive relationship between overall population density and the dependent variable (case rate per 100,000), and a positive relationship between the overall population density and the percentage of black people within a population, we predict that the overall predicted omitted variable bias on the model (disregarding the other independent variables) will be positive. That is, if we include the total population density variable in the model, it will cause the log of the percentage of black people coefficient to tend towards 0, or become less significant.
 
 **Human Mobility Change in Transit Stations**
 
 According to the results of the model a one unit increase in the mobility change in transit stations variable causes the rate of positive tests to increase by ~16 cases per 100,000 population. 
 
+More highly populated areas are likely to be areas of business or commerce - i.e. more people commute to and from them daily. A large number of companies and businesses have implemented work-from-home initiatives, meaning fewer people need to commute to work daily. As a result we predict a negative relationship between population density and human mobility change in transit stations. 
+
+Given that we predict a positive relationship between population density and the dependent variable (case rate per 100,000), and a negative relationship between population density and mobility change in transit stations, we predict that the overall predicted variable bias (disregarding all other independent variables) will be negative. That is, if we include the population density variable in the model, it will cause the human mobility change variable to tend away from zero, or become more significant.
+
 **Number of Days of Shelter in Place**
 
 According to the results of the model a one unit increase in the number of shelter in place days reduces the case rate per 100,000 by ~0.8.
+
+As previously discussed, we predicted that local governments of areas with high population density were more likely to implement shelter-in-place orders earlier in the pandemic. We therefore predict that there is a positive relationship between population density and number of days of shelter in place. 
+
+Given that we predict a positive relationship between the overall population density and the dependent variable (case rate per 100,000), and a positive relationship between overall population density and the number of days of shelter in place, we predict that the overall predicted omitted variable bias on the model (disregarding the other independent variables) will be positive. That is, if we include the percentage of uninsured population percentage variable in the model, it will cause the shelter days coefficient to tend towards 0, or become less significant. As the coefficient is already negative, we would expect to see it becoming less negative.
 
 **Number of Days of Non-Essential Businesses Closure**
 
 According to the results of the model a one unit increase in the number of days that non-essential businesses remained closed causes the case rate to increase by ~6.9 cases per 100,000.
 
-## Education on testing
+Enforcement of shelter-in-place orders are likely to run concurrent with enforced non-essential business closures. We previously reasoned for the positive relationship between shelter in place orders and population density. Likewise, we believe there to be a positive relationship between number of days of non-essential business closure and State population density. 
+
+Given that we predict a positive relationship between overall population density and the dependent variable (case rate per 100,000), and a positive relationship between overall population density and the number of days of forced essential business closure, we predict that the overall predicted omitted variable bias on the model (disregarding the other independent variables) will be positive. That is, if we include the overall population density variable in the model, it will cause the business closure days coefficient to tend towards 0, or become less significant. 
+
+## Statewide Education Levels
+
+Under normal circumstances there is a positive relationship between [education level and the overall health of an individual](https://www.annualreviews.org/doi/abs/10.1146/annurev-publhealth-031816-044628). Though education is something of an multifactorial construct, ranging from basic literacy through to higher education, and therefore difficult to intrinsically measure, we predict that if it could be measured on a continuous scale (i.e. 0 being an adult who was completely illiterate, to 100 being an adult with an advanced post-graduate degree), there would be an negative relationship between educational attainment and positive test rates per 100,000 population. More educated populations are more likely to observe public health and good practices designed to reduce the spread of the disease. 
 
 **Mandatory Mask Use**
 
 According to this model, the enforcement of mask usage reduces the case rate by ~941 cases/100,000, holding the other variable constant.
 
+States that have higher proportions of educated inhabitants are also likely to be ones that enforce mandatory public health measures like mask use. We therefore predict a positive relationship between education levels and mask use orders. 
+
+Given that we predict a positive relationship between education levels and the dependent variable (case rate per 100,000), and a positive relationship between population education levels and mask use enforcement, the overall predicted omitted variable bias on the model (disregarding the other independent variables) will be positive. That is, if we include an education level variable in the model, it will cause the mask use coefficient to tend towards 0, or become less significant. As the coefficient is already negative, we would expect to see it becoming less negative.
+
 **Test Rate per 100,000 habitants**
 
 According to this model, increasing the test rate per 100,000 by 1 unit will increase the number of positive tests per 100,000 by 0.023.
+
+As previously discussed, States with highly educated populations are also likely to have more robust healthcare infrastructures, including those offering access to COVID-19 testing. Consequently, we predict a positive relationship between test rate per 100,000 inhabitants and education levels within the population. 
+
+Given that we predict a positive relationship between education levels and the dependent variable (case rate per 100,000) and a positive relationship between education levels and test rate per 100,000 people, we predict that the overall predicted omitted variable bias on the model (disregarding the other independent variables) will be positive. That is, if we include an education level variable in the model, it will cause the test rate coefficient to tend towards 0, or become less significant.
 
 **Percentage of Population Below 25 Years Old**
 
 According to the results of the model, a one unit increase in the percentage of the population under the age of 25 increases the positive case rate by ~190 per 100,000 of the population, holding all other variables constant.
 
+Relative to older populations, young people are more [likely to be educated](https://www.deseret.com/2015/8/10/20569870/today-s-young-adults-are-the-most-educated-group-in-history#pew-research-centers-fact-tank-recently-reported-that-todays-children-are-more-educated-than-their-grandparents-and-other-generations). As such, we predict a positive relationship between the percentage of the population under 25 years old and education levels. 
+
+Given that we predict a positive relationship between education levels and the dependent variable (case rate per 100,000), and a positive relationship between percentage of education levels and percentage of young people in the State, we predict that the overall predicted omitted variable bias on the model (disregarding the other independent variables) will be positive. That is, if we include an education level variable in the model, it will cause the percentage of population coefficient to tend towards 0, or become less significant.
+
 **Log of Percentage of Black Ethnicity in Total Population**
 
-According to the results of the model, a one unit increase in the log of the percentage of black ethnicity in the population causes the rate of positive tests to increase by ~220 cases per 100,000 population. 
+According to the results of the model, a one unit increase in the log of the percentage of black ethnicity in the population causes the rate of positive tests to increase by ~220 cases per 100,000 population.
+
+Due to longstanding socioeconomic reasons, there is an [observable gap](https://www.americanprogress.org/issues/education-postsecondary/reports/2018/05/23/451186/neglected-college-race-gap-racial-disparities-among-college-completers/) between educational attainment of minorities vs. non-minorities. As such, we predict a negative relationship between the percentage of black people within a population and educational levels in the population. 
+
+Given that we predict a postive relationship between education levels and the dependent variable (case rate per 100,000), and a negative relationship between the education levels and the percentage of black people within a population, we predict that the overall predicted omitted variable bias on the model (disregarding the other independent variables) will be negative. That is, if we include the total population density variable in the model, it will cause the log of the percentage of black people coefficient to tend away from 0, or become more significant.
 
 **Human Mobility Change in Transit Stations**
 
 According to the results of the model a one unit increase in the mobility change in transit stations variable causes the rate of positive tests to increase by ~16 cases per 100,000 population. 
 
+States with large metropolitan or commercial areas frequented by commuters were likely to have been affected substantially by work-from-home initiatives. As many commuters are likely to be more educated, we predict that states observing higher drops in mobility at transit stations are also those that have larger populations of highly educated people. There is therefore a negative relationship between these variables.  
+
+Given that we predict a positive relationship between education levels and the dependent variable (case rate per 100,000), and a negative relationship between large populations of educated people and mobility change in transit stations, we predict that the overall predicted variable bias (disregarding all other independent variables) will be negative. That is, if we include the educational achievement variable in the model, it will cause the human mobility change variable to tend away from zero, or become more significant.
+
 **Number of Days of Shelter in Place**
 
 According to the results of the model a one unit increase in the number of shelter in place days reduces the case rate per 100,000 by ~0.8.
 
+States that are proactive at implementing public health measures are more likely to have higher populations of highly educated people. We therefore predict a positive relationship between educational attainment and the number of shelter in place days. 
+
+Given that we predict a positive relationship between the educational levels and the dependent variable (case rate per 100,000), and a positive relationship between educational levels of the population and the number of days of shelter in place, we predict that the overall predicted omitted variable bias on the model (disregarding the other independent variables) will be positive. That is, if we include an educational level variable in the model, it will cause the shelter days coefficient to tend towards 0, or become less significant. As the coefficient is already negative, we would expect to see it becoming less negative.
+
 **Number of Days of Non-Essential Businesses Closure**
 
 According to the results of the model a one unit increase in the number of days that non-essential businesses remained closed causes the case rate to increase by ~6.9 cases per 100,000.
+
+Similarly, shelter-in-place orders were likely concurrently issued together with enforced closure of non-essential businesses. For reasons discussed previously, we believe there is a positive relationship between shelter-in-place duration and educational achievement. Likewise, we also predict a positive relationship between number of days of non-essential business closure and the educational level of the population. 
+
+Given that we predict a positive relationship between Statewide educational levels and the dependent variable (case rate per 100,000), and a positive relationship between Statewide educational levels and the number of days of forced essential business closure, we predict that the overall predicted omitted variable bias on the model (disregarding the other independent variables) will be positive. That is, if we include a Statewide educational level variable in the model, it will cause the business closure days coefficient to tend towards 0, or become less significant. 
