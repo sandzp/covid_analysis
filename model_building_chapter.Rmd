@@ -97,9 +97,13 @@ df <- read_delim(
   )
 ```
 
-# Data Cleaning
+# Causal Diagram
 
-The data used in the model is taken from the provided covid_19 dataset. The final model uses eight variables that are either created from existing data or supplemented from online resources. Below are the adjustments made to variables that were either created or supplemented.
+![Causal Diagram](Causal Diagram.png)
+
+# Data Summary and Cleaning
+
+The data used in the model is taken from the provided covid_19 dataset. The provided dataset is up-to-date as of October 30th, 2020. The final model uses eight variables that are either created from existing data or supplemented from online resources. Below are the adjustments made to variables that were either created or supplemented.
 
 *Mask Use*
 
@@ -124,20 +128,20 @@ Observations that were marked as "< 0.01" were rounded up to 0.01 for a log tran
 
 # Exploratory Data Analysis
 
-Based on our causal model, mask use should lead to a decrease in the number of covid cases. The boxplot below suggests that this initial assumption at least holds to some degree.
+*Talk about it being a policy and mandatory* Based on our causal model, mask use should lead to a decrease in the number of covid cases. The boxplot below suggests that this initial assumption at least holds to some degree.
 
-```{r case rate vs mask use}
+```{r case rate vs mask use, warning=FALSE}
 df %>%
   ggplot(aes(y = case_rate, x = mask_use)) +
   geom_boxplot() +
   labs(
-    title = "Relationship between Mask Use and Case Rate by state",
-    x = "Mask Use",
+    title = "Relationship between Mandatory Mask Use and Case Rate by state",
+    x = "Mandatory Mask Use",
     y = "Case Rate per 100K"
   )
 ```
 
-COVID-19 is a virus that spreads from person to person and the first stop gaps implemented were the closing of non-essential businesses and a Shelter-in-Place (SIP) mandate. A square-root transformation of the data better interprets the data as the correlation increases.
+COVID-19 is a virus that spreads from person to person and the first stop gaps implemented were the closing of non-essential businesses and a Shelter-in-Place (SIP) mandate. A square-root transformation of the data better interprets the data as the correlation increases. *Diminishing returns and more linear relationship.*
 
 ```{r warning=FALSE}
 df %>%
@@ -149,6 +153,15 @@ df %>%
     y = "Case Rate per 100K"
   )
 
+df %>%
+  ggplot(aes(y = case_rate, x = sqrt(shelter_days))) +
+  geom_point() +
+  labs(
+    title = "Relationship between sqrt(Days Sheltered-in-Place) and Case Rate by state",
+    x = "sqrt Number of Days in SIP",
+    y = "Case Rate per 100K"
+  )
+  
 sip <- lm(case_rate ~ shelter_days, data = df)
 sqrt_sip <- lm(case_rate ~ sqrt(shelter_days), data = df)
 summary(sip)$r.squared
@@ -166,11 +179,6 @@ df %>%
     x = "Number of Days Businesses Closed",
     y = "Case Rate per 100K"
   )
-
-sip <- lm(case_rate ~ bus_close_days, data = df)
-log_sip <- lm(case_rate ~ log(bus_close_days), data = df)
-summary(sip)$r.squared
-summary(log_sip)$r.squared
 ```
 
 
@@ -191,17 +199,6 @@ Next, we look at the correlation between case rate and age. From the covariance 
 
 ```{r variance-covariance matrix of case_rate vs. age variables, warning=FALSE}
 var(df[ ,c(4, 51:56)], na.rm=TRUE)
-```
-
-```{r warning = FALSE}
-df %>%
-  ggplot(aes(y = case_rate, x = age_65)) +
-  geom_point() +
-  labs(
-    title = "Relationship above age 65 and Case Rate by state",
-    x = "% of Population at least age 65",
-    y = "Case Rate per 100K"
-  )
 ```
 
 ```{r warning = FALSE}
@@ -250,7 +247,7 @@ summary(blk_pop)$r.squared
 summary(log_blk_pop)$r.squared
 ```
 
-Included in the dataset is the Google Human Mobility metric regarding the change in activity of popular spots (retail, groceries, parks, etc.,). We find that the highest correlation of the mobility variables lies with the change in Transit Stations (mob_TS). Oddly enough, Wyoming is one of three states with a positive change in transit station use. Wyoming also has by far the largest change at 21% with South Dakota next at 3%. 
+*Add data from Google Human Mobility on time period of data*Included in the dataset is the Google Human Mobility metric regarding the change in activity of popular spots (retail, groceries, parks, etc.,). We find that the highest correlation of the mobility variables lies with the change in Transit Stations (mob_TS). Oddly enough, Wyoming is one of three states with a positive change in transit station use. Wyoming also has by far the largest change at 21% with South Dakota next at 3%. 
 
 ```{r variance-covariance matrix of case_rate vs. mobility variables, warning=FALSE}
 var(df[ ,c(4, 57:62)], na.rm=TRUE)
@@ -261,7 +258,7 @@ df %>%
   ggplot(aes(y = case_rate, x = mob_TS)) +
   geom_point() +
   labs(
-    title = "Relationship Between Huamn Mobility: Transit Stations and Case Rate by state",
+    title = "Relationship Between Human Mobility: Transit Stations and Case Rate by state",
     x = "Percentage Change in Human Mobility: Transit Stations",
     y = "Case Rate per 100K"
   )
@@ -382,8 +379,6 @@ std_errors = list(
   sqrt(diag(vcovHC(model_3)))
 )
 stargazer(model_1, model_2, model_3, se = std_errors, type = "text", title = "Model 3 Summary")
-
-df$bus_close_days
 ```
 
 
