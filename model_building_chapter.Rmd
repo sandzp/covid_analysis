@@ -101,6 +101,8 @@ df <- read_delim(
 
 ![Causal Diagram](Causal Diagram.png)
 
+
+
 # Data Summary and Cleaning
 
 The data used in the model is taken from the provided covid_19 dataset. The provided dataset is up-to-date as of October 30th, 2020. The final model uses eight variables that are either created from existing data or supplemented from online resources. Below are the adjustments made to variables that were either created or supplemented.
