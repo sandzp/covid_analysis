@@ -406,7 +406,15 @@ coeftest(model_3, vcovHC = vcovHC(model_3, type = "HC3"))
 
 According to Model 3, states that have adopted mandatory mask use would expect to have -940.7 covid cases per 100,000 habitants. Given that the median of covid case rate among US states is of 2,633 per 100,000 habitants, with 1st Quartile = 2,040 and 3rd quartile = 3,516, the coefficient estimate has practical significance, with an effect size corresponding to a reduction of 35.7% of the median of the covid case rate among states.
 
+
+
 ## CLM Assumptions & Limitations
+
+1) Independent & Identically Distributed Random Variables
+
+Our data set is inherently guilty of being geographically clustered as it only focuses on samples (in this case, states) within the United States. While each of these states have the authority on whether or not to enact a mandated face mask policy, they all share a common federal government and leader in the form of the President. Consequently, our research question is specifically framed to only focus on the effect of mandatory face mask policies on the COVID-19 case rate within the United States. 
+
+2) Linear Conditional Expectation
 
 To assess linear conditional expectation, we need to examine the residuals for our independent variables in each model.
 
@@ -436,13 +444,49 @@ plot_3_residuals
 
 We are able to observe a clear linear pattern when plotting the predicted values against the corresponding residuals for each model; in fact, the mean becomes increasingly centered around 0 with each iteration. While we cannot assertively state that our model(s) meet the linear conditional expectation assumption, we can fail to reject the null hypothesis that there is an inherent issue in making that assumption.
 
-```{r plot, message=FALSE, echo = TRUE}
+3) No Perfect Collinearity
 
-lmtest::bptest(model_1)
-lmtest::bptest(model_2)
-lmtest::bptest(model_3)
+As far as perfect collinearity goes, we can safely assume that our models meet this assumption of the CLM given that our models all run without dropping any variables. However, when trying to evaluate near-perfect collinearity, it becomes a slightly more involved exercise.
 
+Thinking about the variables we added between Model 2 and Model 3 (shelter_days and bus_close_days), one might point out that there is a high level of correlation between those variables and our primary independent variable of a mandated face mask policy. However, it is important to note that we are purposefully adding those variables to the mix in order to demonstrate the robustness of Model 2.
+
+If we re-examine the Model 3 Summary, we note that even with the addition of the shelter_days and bus_close_days variables, we still maintain a relatively constant coefficient for mask_use variable (-961 in Model 2 versus -941 in Model 3). Coefficients of our other variables also remain relatively unchanged.
+
+```{r model_3 summary, warning = FALSE}
+model_3 <- lm(case_rate ~ mask_use + test_rate + age_below_25 + log(black_pop) + mob_TS + shelter_days + bus_close_days, data = df)
+std_errors = list(
+  sqrt(diag(vcovHC(model_1))),
+  sqrt(diag(vcovHC(model_2))),
+  sqrt(diag(vcovHC(model_3)))
+)
+stargazer(model_1, model_2, model_3, se = std_errors, type = "text", title = "Model 3 Summary")
 ```
+
+4) Heteroscedastic Conditional Variance
+
+To test for heteroscedasticity, or non-constant variance, we must perform the Breusch-Pagan test on each of our models. Our null hypothesis is that there is no evidence for heteroscedastic variance.
+
+Running the test for Model 1, we observe a high p-value of 0.7. While we cannot assertively state that there is no heteroscedastic variance, we can safely assume that we fail to reject the null hypothesis.
+
+```{r plot, message=FALSE, echo = TRUE}
+lmtest::bptest(model_1)
+```
+
+Continuing on to running the Breusch-Pagan test for Model 2, we now observe a very low p-value of ~0.008, and reject the null hypothesis. Although this indicates that our data is heteroscedastic, it is important to note that we are utilizing Robust Standard Errors versus Classical Standard Errors in not just Model 2, but all of our models and their associated tests.
+
+```{r plot, message=FALSE, echo = TRUE}
+lmtest::bptest(model_2)
+```
+
+Finally in Model 3, running the BP test again yields a low p-value of ~0.02, and we reject the null hypothesis. This once again indicates that our data is heteroscedastic, but as mentioned previously we solve for this by utilizing Robust Standard Errors in our model and associated tests.
+
+```{r plot, message=FALSE, echo = TRUE}
+lmtest::bptest(model_3)
+```
+
+5) Normally Distributed Errors
+
+The final CLM assumption we must test for is normally distributed errors. In order to do this, we will run quantile-quantile plots for each of our models to examine whether the residuals follow a straight line; if so, we can say that they are normally distributed.
 
 ```{r plot, message=FALSE, echo = TRUE}
 
@@ -451,3 +495,5 @@ plot(model_2, which = c(2,2))
 plot(model_3, which = c(2,2))
 
 ```
+
+As seen above, we can see that the residuals for all 3 models do follow a straight line pattern within their respective Normal Q-Q plots. Accordingly, we can safely assume that our models satisfy this assumption. 
