@@ -112,7 +112,7 @@ This variable is included in the dataset.
 
 The percentage of homeless people per state population can broadly be categorized as a socioeconomic metric. Due to their circumstances, homeless people are less likely to be able to afford PPE, and have limited access to accommodation that suitably limits their exposure to others (if they have any accommodation at all). This theory is largely supported by [existing research](https://www.thelancet.com/journals/lanres/article/PIIS2213-2600(20)30396-9/fulltext), and consequently there have even been initiatives to provide temporary housing in an effort to control the spread of the infection among this group and the larger population. Nevertheless, these initiatives are inconsistent across regions, and in regions where they have been offered, [they have been unsuccessful](https://www.latimes.com/homeless-housing/story/2020-05-19/newsom-coronavirus-homeless-population-hotel-project-roomkey).
 
-As such we believe there is a positive correlation between homelessness and the dependent variable, i.e. COVID-19 case rate per 100,000. That is, in States with higher percentages of homeless people, the case rate per 100,000 will be higher. 
+As such we believe there is a positive relationship between homelessness and the dependent variable, i.e. COVID-19 case rate per 100,000. That is, in States with higher percentages of homeless people, the case rate per 100,000 will be higher. 
 
 **Mandatory Mask Use**
 
@@ -230,7 +230,7 @@ It is likely that States concurrently issued shelter-in-place orders together wi
 
 Given that we predict a positive relationship between Hispanic population percentage and the dependent variable (case rate per 100,000), and a positive relationship between Hispanic population percentage and the number of days of forced essential business closure, we predict that the overall predicted omitted variable bias on the model (disregarding the other independent variables) will be positive. That is, if we include the homelessness variable in the model, it will cause the business closure days coefficient to tend towards 0, or become less significant. 
 
-## Access to Healthcare
+## Percentage of Uninsured People in the Population
 
 The United States is the only developed nation that does not offer some kind of free public healthcare option. Consequently 8.5% of the population or 27.5 million are without health insurance. This may be due to underemployment, poverty, disabilites, or a myriad of other reasons. Uninsured essential jobs may result in exposure to COVID, as may living in sub-standard accomodation. We therefore predict that reduced access to healthcare (higher percentage of uninsured population) results in a higher rate of positive COVID-19 tests per 100,000 of population (a positive relationship). As COVID-19 testing is largely free at the State-level we assume access to testing is unrelated to having health insurance.  
 
@@ -239,6 +239,7 @@ The United States is the only developed nation that does not offer some kind of 
 According to this model, the enforcement of mask usage reduces the case rate by ~941 cases/100,000, holding the other variable constant. 
 
 There are [16 States, all led by Republicans](https://undark.org/2020/10/06/16-states-dont-mandate-mask-use/) that have not implemented a mandatory mask order. Similarly, Republican-led States have also been hardest hit by the effects of globalization and a shifting National economy. These States therefore tend to have [higher rates of poverty](https://www.baltimoresun.com/opinion/editorial/bs-ed-0902-gop-states-underperform-20200831-kuquanxy4jd6zn55hqi76ery6i-story.html), and therefore will have higher percentage of uninsured individuals. We therefore predict that States with a higher percentage of uninsured in their populations will be less likely to enforce mandatory mask orders. 
+
 Given that we predict a positive relationship between the percentage of uninsured and the dependent variable (case rate per 100,000), and a negative relationship between access to healthcare and mask use enforcement, the overall predicted omitted variable bias on the model (disregarding the other independent variables) will be negative. That is, if we include a variable reflecting percentage uninsured, it will cause the mask use coefficient to tend away from 0, or become more significant. As the coefficient is already negative, we would expect to see it becoming more negative.  
 
 **Test Rate per 100,000 habitants**
@@ -291,7 +292,7 @@ This variable is included in the dataset.
 
 Population density [varies by State](https://simple.wikipedia.org/wiki/List_of_U.S._states_by_population_density) across the United States. As expected, coastal States tend to have higher population densities, likely due to the presence of larger metropolitan areas within them. 
 
-A larger population density may mean that more people are concentrated within a smaller area, which may then translate into increased opportunity for the spread of COVID-19. Moreover, inner-cities and low-income areas are likely to have higher population densities per unit of area. As they may be inhabited by socioeconomic groups and ethnicities that are at increased risk of being impacted by COVID-19, we predict that a larger population density is positively related to the test rate per 100,000 population. 
+A larger population density may mean that more people are concentrated within a smaller area, which may then translate into increased opportunity for the spread of COVID-19. Moreover, inner-cities and low-income areas are likely to have higher population densities per unit of area. As they may be inhabited by socioeconomic groups and ethnicities that are at increased risk of being impacted by COVID-19, we predict that a larger population density is positively related to the case rate per 100,000 population. 
 
 **Mandatory Mask Use**
 
@@ -408,3 +409,13 @@ According to the results of the model a one unit increase in the number of days 
 Similarly, shelter-in-place orders were likely concurrently issued together with enforced closure of non-essential businesses. For reasons discussed previously, we believe there is a positive relationship between shelter-in-place duration and educational achievement. Likewise, we also predict a positive relationship between number of days of non-essential business closure and the educational level of the population. 
 
 Given that we predict a positive relationship between Statewide educational levels and the dependent variable (case rate per 100,000), and a positive relationship between Statewide educational levels and the number of days of forced essential business closure, we predict that the overall predicted omitted variable bias on the model (disregarding the other independent variables) will be positive. That is, if we include a Statewide educational level variable in the model, it will cause the business closure days coefficient to tend towards 0, or become less significant. 
+
+- level of cautiousness of the population with covid
+- political inclination of states
+- access to healthcare
+- use of transport systems by public
+- local climate
+
+## Local Population Attitude towards the Pandemic
+
+Though Asian countries went through a similar 
