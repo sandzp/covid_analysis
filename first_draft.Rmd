@@ -532,7 +532,7 @@ In the final model, the coefficient for Mandatory Mask Use is ~-941, with a S.E.
 
 ## Skepticism Towards COVID-19 Control Policies
 
-There is a documented segment of the population that are skeptical towards the existence of COVID-19. They may view subsequent governmental efforts to control its spread as a conspiracy. In the provided dataset, we do not have any data pertaining to the proportion of people in any State that are COVID-19 skeptics (if it can even be quantitatively measured). Nevertheless, in an ideal world if we could quantify this metric, we predict that the more skeptics there are in a State, the less likely they will be to observe preventative public-health measures and will thus contract COVID-19 at a higher rate. Therefore, we predict a positive relationship between the State population of COVID-19 skeptics and the case rate per 100,000. 
+There is a documented segment of the population that are skeptical towards the existence of COVID-19$^1$. They may view subsequent governmental efforts to control its spread as a conspiracy. In the provided dataset, we do not have any data pertaining to the proportion of people in any State that are COVID-19 skeptics (if it can even be quantitatively measured). Nevertheless, in an ideal world if we could quantify this metric, we predict that the more skeptics there are in a State, the less likely they will be to observe preventative public-health measures and will thus contract COVID-19 at a higher rate. Therefore, we predict a positive relationship between the State population of COVID-19 skeptics and the case rate per 100,000. 
 
 Similarly, the more COVID-19 skeptics there are among a State's poulation, the more likely it is that their elected local government will align themselves with their views and resist enforcement of mandatory mask usage policies. We therefore predict a negative relationship between the population of COVID-19 skeptics in a State and State enforcement of mandatory mask laws.
 
@@ -555,7 +555,7 @@ As the relationship between the omitted variable and the independent variable is
 
 ## Travel Restrictions
 
-Certain states have imposed travel restrictions to prevent the spread of COVID-19. These may vary from recommending visitors to quarantine, to requiring them to provide proof of a negative COVID-19 test before being granted entry. We therefore predict that these measures to prevent the spread of COVID-19 are negatively related to the case rate per 100,000 population. That is, States that have enforced some kind of travel restriction have fewer overall cases. 
+Certain states have imposed travel restrictions to prevent the spread of COVID-19$^2$. These may vary from recommending visitors to quarantine, to requiring them to provide proof of a negative COVID-19 test before being granted entry. We therefore predict that these measures to prevent the spread of COVID-19 are negatively related to the case rate per 100,000 population. That is, States that have enforced some kind of travel restriction have fewer overall cases. 
 
 Similarly, if a State government is ready to impose travel restrictions, they are also likely to enforce other public health measures such as mandatory wearing of face masks in public places. Therefore we predict a positive relationship between State enforcement of travel restrictions and implementation of mandatory face mask policies. 
 
@@ -567,7 +567,7 @@ As the relationship between the omitted variable and the dependent variable is n
 
 ## Average Temperature 
 
-It is thought that the [dry air occuring in cold weather enhances the spread of the flu virus](https://www.nm.org/healthbeat/healthy-tips/can-winter-make-you-sick#:~:text=Research%20shows%20that%20dry%20winter,effective%20at%20fighting%20off%20viruses.). Certain States in the U.S. have cooler average climates than others, and may also experience colder winters. We therefore predict that there is a negative relationship between a State's average temperature and the positive case rate per 100,000 population. 
+It is thought that the dry air occuring in cold weather enhances the spread of the flu virus$^3$. Certain States in the U.S. have cooler average climates than others, and may also experience colder winters. We therefore predict that there is a negative relationship between a State's average temperature and the positive case rate per 100,000 population. 
 
 Similarly, a local government is likely aware of the link between cooler temperatures and viral spread, and are therefore more likely to enact mandatory mask use policies to mitigate this phenomenon. We therefore predict that the lower a State's average temperature, the more likely the government will be to enforce mandatory mask use policies, a negative relationship. 
 
@@ -577,7 +577,7 @@ As the relationship between the omitted variable and both the dependent and inde
 
 ## Percentage of Republican Voters
 
-There is evidence to show that States that are majority Republican are experiencing the majority of new COVID-19 infections. Though the reasons for this are likely complex, it has been demonstrated, for example, that [Republican voters are less likely to observe social distancing regulations, relative to Democratic voters](https://www.nature.com/articles/s41562-020-00977-7). We therefore predict that there is a positive relationship between proportion of Republican-voting population in a State and the positive case rate per 100,000 people. 
+There is evidence to show that States that are majority Republican are experiencing the majority of new COVID-19 infections. Though the reasons for this are likely complex, it has been demonstrated, for example, that Republican voters are less likely to observe social distancing regulations, relative to Democratic voters$^4$. We therefore predict that there is a positive relationship between proportion of Republican-voting population in a State and the positive case rate per 100,000 people. 
 
 Similarly, States with a majority of Republican-leaning voters are likely to elect Republican officials who will pander to their voter base. We therefore predict that States with a higher percentage of Republican voters, will be less likely to enforce mandatory mask use laws i.e. a negative relationship.
 
@@ -594,3 +594,14 @@ Our exploratory data analysis helps inform how we chose the variables we did, ra
 The next few months will be crucial for the country to course correct until the widespread availability and administration of a safe vaccine. We have already lost far too many of our fellow citizens to this disease. 
 
 Wear a mask. Slow the spread.
+
+# References
+
+1. Whatley, Z., Shodiya, T., **Why So Many Americans Are Skeptical of a Coronavirus Vaccine**, https://www.scientificamerican.com/article/why-so-many-americans-are-skeptical-of-a-coronavirus-vaccine/
+
+2. **Thinking of Traveling in the U.S.? These States Have Travel Restrictions.**, https://www.nytimes.com/2020/07/10/travel/state-travel-restrictions.html
+
+3. Lowen, AC., Steel, J., **Roles of Humidity and Temperature in Shaping Influenza Seasonality**, https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4097773/
+
+4. Gollwitzer A. et al., **Partisan differences in physical distancing are linked to health outcomes during the COVID-19 pandemic**, https://www.nature.com/articles/s41562-020-00977-7
+
