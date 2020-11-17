@@ -435,7 +435,7 @@ Our data set is inherently guilty of being geographically clustered as it only f
 
 To assess linear conditional expectation, we need to examine the residuals for our independent variables in each model.
 
-```{r plot, message=FALSE, echo = TRUE}
+```{r message=FALSE, echo = TRUE}
 
 model_1_residuals = resid(model_1)
 model_2_residuals = resid(model_2)
@@ -467,7 +467,7 @@ As far as perfect collinearity goes, we can safely assume that our models meet t
 
 Thinking about the variables we added between Model 2 and Model 3 (shelter_days and bus_close_days), one might point out that there is a high level of correlation between those variables and our primary independent variable of a mandated face mask policy. However, it is important to note that we are purposefully adding those variables to the mix in order to demonstrate the robustness of Model 2.
 
-If we re-examine the Model 3 Summary, we note that even with the addition of the shelter_days and bus_close_days variables, we still maintain a relatively constant coefficient for mask_use variable (-961 in Model 2 versus -941 in Model 3). Coefficients of our other variables also remain relatively unchanged.
+If we re-examine the Model 3 Summary, we note that even with the addition of the shelter_days and bus_close_days variables, we still maintain a relatively constant coefficient for mask_use variable (-961 in Model 2 versus -941 in Model 3). Coefficients of our other variables also remain relatively unchanged. Additionally, it is clear that collinearity is introduced in Model 3 because the standard errors for several of the variables increases as compared with Model 2.
 
 ```{r model_3 reexamination, warning = FALSE}
 model_3 <- lm(case_rate ~ mask_use + test_rate + age_below_25 + log(black_pop) + mob_TS + shelter_days + bus_close_days, data = df)
@@ -506,12 +506,15 @@ lmtest::bptest(model_3)
 The final CLM assumption we must test for is normally distributed errors. In order to do this, we will run quantile-quantile plots for each of our models to examine whether the residuals follow a straight line; if so, we can say that they are normally distributed.
 
 ```{r message=FALSE, echo = TRUE}
+
 plot(model_1, which = c(2,2))
 plot(model_2, which = c(2,2))
 plot(model_3, which = c(2,2))
+
 ```
 
 As seen above, we can see that the residuals for all 3 models do follow a straight line pattern within their respective Normal Q-Q plots. Accordingly, we can safely assume that our models satisfy this assumption. 
+
 
 # Omitted Variables Discussion
 
@@ -563,3 +566,13 @@ There is evidence to show that States that are majority Republican are experienc
 Similarly, States with a majority of Republican-leaning voters are likely to elect Republican officials who will pander to their voter base. We therefore predict that States with a higher percentage of Republican voters, will be less likely to enforce mandatory mask use laws i.e. a negative relationship.
 
 As there is a positive relationship between the omitted variable (% of Republican voters) and the dependent variable, and a negative relationship between the omitted variable and the independent variable, the overall omitted variable bias will be negative. If we include the proportion of Republican voters as a variable in our model, we would expect to see the coefficient for mandatory mask use to increase or move towards 0. 
+
+# Conclusion
+
+COVID-19 is not a disease to take lightly. As the death toll and case rate continues to mount, we must collectively work together to slow the spread. Our modeling above concludes that the implementation of a mandatory face mask policy is effective in reducing the COVID-19 case rate by upwards of 900 cases per 100,000 residents within the United States. 
+
+Our exploratory data analysis helps inform how we chose the variables we did, ranging from age to race to mobility data elements. Leveraging those variables, our second and most optimal model achieved an adjusted $R^2$ value of nearly 60%. Further controlling for other policy variables such as shelter-in-place and closure of businesses did not erode the adjusted $R^2$ value very much (57%), and the residual standard error remained nearly constant. As demonstrated in the progression of our modeling, the statistical significance and practical significance remain robust even with the addition of several other variables. They also meet the assumptions of the CLM. Finally, we chose a healthy variety of omitted variables to assess potential bias on our primary model coefficients. 
+
+The next few months will be crucial for the country to course correct until the widespread availability and administration of a safe vaccine. We have already lost far too many of our fellow citizens to this disease. 
+
+Wear a mask. Slow the spread.
