@@ -2,13 +2,17 @@
 title: "Lab 2 First Draft"
 author: "Lucas Brossi, Amar Chatterjee, Daniel Chow, Sandip Panesar"
 date: "11/16/2020"
-output: pdf_document
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
 ---
 ```{r library imports, include = FALSE}
 library(tidyverse)
 library(lmtest)
 library(sandwich)
 library(stargazer)
+library(knitr)
 ```
 
 ```{r data schema, include = FALSE}
@@ -534,6 +538,11 @@ Similarly, the more COVID-19 skeptics there are among a State's poulation, the m
 
 As the relationship between the omitted variable and the dependent variable is positive, while the relationship between the omitted variable and the explanatory variable in question is negative, the overall effect of the omitted variable bias will be negative. If we could gather information about a State's population of COVID-19 skeptics and add this variable to our model, doing so would cause the coefficient for mandatory mask use to increase, or move towards 0. 
 
+
+![](covid_skeptics.png){width=300px}
+
+
+
 ## State Healthcare Infrastructure
 
 The standard of healthcare infrastructure may vary across States. For example, there may be fewer healthcare facilities in largely rural States, compared to those that are more urban. As a result, populations in States with poorer healthcare infrastructure may not have easy access to COVID testing or diagnosis. If we could measure and quantify this a State healthcare infrastructure metric, we predict that it would be postively related to COVID-19 case rate per 100,000 population. That is, the higher the theoretical "State healthcare infrastructure" score, the higher number of COVID-19 tests performed, translating to a higher positive case rate. 
@@ -541,6 +550,8 @@ The standard of healthcare infrastructure may vary across States. For example, t
 Similarly, governments in States with poor healthcare infrastructure might be worried about their population being unable to access treatment for COVID-19, and might be more likely to enact efforts to prevent its spread among the population, which may include enforcing mask use. We therefore predict a negative relationship between a theoretical "State healthcare infrastructure" score and enforcement of laws requiring use of face masks. 
 
 As the relationship between the omitted variable and the independent variable is positive, and the relationship between the omitted variable and and dependent variable is negative, overall omitted variable bias effect is predicted to be negative. If we could compute a "State healthcare infrastructure" metric and include it in our model, its addition would cause the mandatory mask use coefficient to increase, or move towards 0. 
+
+![](healthcare_infrastructure.png){width=300px}
 
 ## Travel Restrictions
 
@@ -550,6 +561,10 @@ Similarly, if a State government is ready to impose travel restrictions, they ar
 
 As the relationship between the omitted variable and the dependent variable is negative, and the relationship between the omitted variable and the independent variable is positive, we predict an overall negative omitted variable bias on the model. By adding a variable pertaining to State enforcement of travel restrictions to the model, we would expect to see an increase in the mandatory mask use coefficient. As it is negative in the existing model, we would expect to see it move towards 0. 
 
+
+![](travel_restrictions.png){width=300px}
+
+
 ## Average Temperature 
 
 It is thought that the [dry air occuring in cold weather enhances the spread of the flu virus](https://www.nm.org/healthbeat/healthy-tips/can-winter-make-you-sick#:~:text=Research%20shows%20that%20dry%20winter,effective%20at%20fighting%20off%20viruses.). Certain States in the U.S. have cooler average climates than others, and may also experience colder winters. We therefore predict that there is a negative relationship between a State's average temperature and the positive case rate per 100,000 population. 
@@ -558,6 +573,7 @@ Similarly, a local government is likely aware of the link between cooler tempera
 
 As the relationship between the omitted variable and both the dependent and independent variables is negative, the overall effect of the average temperature omitted variable will be positive. That is, if we add an average temperature variable to our model, we would expect to see a decrease in the coefficient for mandatory mask use. As the mandatory mask use coefficient is already negative, we would expect it to become more negative or move further away from 0.
 
+![](average_temperature.png){width=300px}
 
 ## Percentage of Republican Voters
 
@@ -566,6 +582,8 @@ There is evidence to show that States that are majority Republican are experienc
 Similarly, States with a majority of Republican-leaning voters are likely to elect Republican officials who will pander to their voter base. We therefore predict that States with a higher percentage of Republican voters, will be less likely to enforce mandatory mask use laws i.e. a negative relationship.
 
 As there is a positive relationship between the omitted variable (% of Republican voters) and the dependent variable, and a negative relationship between the omitted variable and the independent variable, the overall omitted variable bias will be negative. If we include the proportion of Republican voters as a variable in our model, we would expect to see the coefficient for mandatory mask use to increase or move towards 0. 
+
+![](percentage_republicans.png){width=300px}
 
 # Conclusion
 
