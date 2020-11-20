@@ -13,6 +13,7 @@ library(lmtest)
 library(sandwich)
 library(stargazer)
 library(knitr)
+library(GGally)
 ```
 
 ```{r data schema, include = FALSE}
@@ -104,7 +105,7 @@ As of the time of this writing, more than 10 million Americans have been infecte
 
 One of the earliest recommendations by health officials to help protect against contracting the virus was to don Personal Protective Equipment (PPE), more specifically face masks. When combined with social distancing, masks were said to drastically reduce the risk of the virus spreading. 
 
-![](WearMask.png)
+![](images/WearMask.png)
 
 On April 3, the Center for Disease Control (CDC) issued an official recommendation advising all persons to wear a cloth face mask or covering in public to help slow the spread of the coronavirus. Following this guidance, almost every state went on to enact a policy requiring people to wear face masks at all times in public settings. In fact, only 7 states to date have proceeded with no such policy (although many have since ended their order).
 
@@ -121,34 +122,34 @@ To answer this question, we chose the ‘Case Rate per 100,000’ measure as our
 
 # Causal Diagram
 
-Below is the causal diagram that our model is built from. In blue is case rate per 100k, the main dependent variable. We hypothesize that policies for mandatory mask (green) has a causal effect on the case rate per 100k. In yellow are the control variables that we use. Finally, in red we have all the other terms combined as a single error term.
+Below is the causal diagram that our model is built from. In blue is case rate per 100k, the main dependent variable. We hypothesize that mandatory mask policies (green) have a causal effect on the case rate per 100k. In yellow are the control variables that we use. Finally, in red we have all the other terms combined as a single error term.
 
 
-![](Causal Diagram.png)
+![](images/Causal Diagram.png)
 
 
 
 # Data Summary and Cleaning
 
-The data used in the model is taken from the provided covid_19 dataset. The provided dataset is up-to-date as of October 30th, 2020. The final model uses eight variables that are either created from existing data or supplemented from online resources. Below are the adjustments made to variables that were either created or supplemented.
+The data used in the model is taken from the provided covid_19 dataset. The provided dataset is up-to-date as of October 30th, 2020. The final model uses eight variables that are either created from existing data and/or supplemented from online resources. Below are the adjustments made to variables that were either created or supplemented.
 
-*Mask Use*
+**Mask Use**
 
 This binary/logical variable was created by assigning a 1 if the state had a mask mandate and 0 if it did not (based on the mask mandate date column). Some of the data from the mask mandate was missing and was manually research and populated.
 
-*Percent Age Below 25*
+**Percent Age Below 25**
 
 This column was created by combining the 0-18 and 18-25 age groups. No other adjustments were made.
 
-*Days in Shelter-in-Place*
+**Days in Shelter-in-Place**
 
 The number of days each state was under the Shelter-in-Place mandate. This data was missing some data and supplemented by researching and populating the missing data. The column was creating by subtracting the end and start dates.
 
-*Days Businesses Closed*
+**Days Businesses Closed**
 
 The number of days each state closed non-essential businesses. Similar to the days in SIP, missing data was populating through research of the state's specific mandates, then calculated by subtracting the end and start dates.
 
-*Percentage of Pouplation: Black*
+**Percentage of Pouplation: Black**
 
 Observations that were marked as "< 0.01" were rounded up to 0.01 for a log transformation to be applied.
 
@@ -157,6 +158,7 @@ Observations that were marked as "< 0.01" were rounded up to 0.01 for a log tran
 The initial exploration of our data is driven by our main dependent variable - case rate per 100k - and independent variable - a policy for mandatory mask use. Based on our causal model, a mask-use policy should lead to a decrease in the number of covid cases. The boxplot below suggests that this initial assumption at least holds to some degree.
 
 ```{r case rate vs mask use, warning=FALSE}
+
 df %>%
   ggplot(aes(y = case_rate, x = mask_use)) +
   geom_boxplot() +
@@ -166,6 +168,22 @@ df %>%
     y = "Case Rate per 100K"
   )
 ```
+
+```{r warning=FALSE, message=FALSE}
+ggpairs(data = df, columns = c(4,seq(14,20,2)))
+```
+
+```{r warning=FALSE, message=FALSE}
+ggpairs(data = df, columns = c(4,25:31))
+```
+
+```{r warning=FALSE, message=FALSE}
+ggpairs(data = df, columns = c(4,38:43))
+```
+
+```{r warning=FALSE, message=FALSE}
+ggpairs(data = df, columns = c(4,44:49))
+``` 
 
 COVID-19 is a virus that spreads from person to person and the first stop gaps implemented were the closing of non-essential businesses and a Shelter-in-Place (SIP) mandate. A square-root transformation of the data better interprets the data as the correlation increases. It suggests that there may be a diminishing return for each additional day sheltered in place.
 
@@ -309,7 +327,7 @@ case_rate = $\beta_0$ + $\beta_1$ * mask_use + $\beta_2$ * test_rate
 ```{r model_1 summary, warning = FALSE}
 model_1 <- lm(case_rate ~ mask_use + test_rate, data = df)
 std_errors = sqrt(diag(vcovHC(model_1)))
-stargazer(model_1, se = std_errors, type = "text", title = "Model 1 Summary")
+stargazer(model_1, se = std_errors, type = "latex", title = "Model 1 Summary")
 ```
 
 
@@ -539,7 +557,7 @@ Similarly, the more COVID-19 skeptics there are among a State's poulation, the m
 As the relationship between the omitted variable and the dependent variable is positive, while the relationship between the omitted variable and the explanatory variable in question is negative, the overall effect of the omitted variable bias will be negative. If we could gather information about a State's population of COVID-19 skeptics and add this variable to our model, doing so would cause the coefficient for mandatory mask use to increase, or move towards 0. 
 
 
-![](covid_skeptics.png){width=300px}
+![](images/covid_skeptics.png){width=300px}
 
 
 
@@ -551,7 +569,7 @@ Similarly, governments in States with poor healthcare infrastructure might be wo
 
 As the relationship between the omitted variable and the independent variable is positive, and the relationship between the omitted variable and and dependent variable is negative, overall omitted variable bias effect is predicted to be negative. If we could compute a "State healthcare infrastructure" metric and include it in our model, its addition would cause the mandatory mask use coefficient to increase, or move towards 0. 
 
-![](healthcare_infrastructure.png){width=300px}
+![](images/healthcare_infrastructure.png){width=300px}
 
 ## Travel Restrictions
 
@@ -562,7 +580,7 @@ Similarly, if a State government is ready to impose travel restrictions, they ar
 As the relationship between the omitted variable and the dependent variable is negative, and the relationship between the omitted variable and the independent variable is positive, we predict an overall negative omitted variable bias on the model. By adding a variable pertaining to State enforcement of travel restrictions to the model, we would expect to see an increase in the mandatory mask use coefficient. As it is negative in the existing model, we would expect to see it move towards 0. 
 
 
-![](travel_restrictions.png){width=300px}
+![](images/travel_restrictions.png){width=300px}
 
 
 ## Average Temperature 
@@ -573,7 +591,7 @@ Similarly, a local government is likely aware of the link between cooler tempera
 
 As the relationship between the omitted variable and both the dependent and independent variables is negative, the overall effect of the average temperature omitted variable will be positive. That is, if we add an average temperature variable to our model, we would expect to see a decrease in the coefficient for mandatory mask use. As the mandatory mask use coefficient is already negative, we would expect it to become more negative or move further away from 0.
 
-![](average_temperature.png){width=300px}
+![](images/average_temperature.png){width=300px}
 
 ## Percentage of Republican Voters
 
@@ -583,7 +601,7 @@ Similarly, States with a majority of Republican-leaning voters are likely to ele
 
 As there is a positive relationship between the omitted variable (% of Republican voters) and the dependent variable, and a negative relationship between the omitted variable and the independent variable, the overall omitted variable bias will be negative. If we include the proportion of Republican voters as a variable in our model, we would expect to see the coefficient for mandatory mask use to increase or move towards 0. 
 
-![](percentage_republicans.png){width=300px}
+![](images/percentage_republicans.png){width=300px}
 
 # Conclusion
 
