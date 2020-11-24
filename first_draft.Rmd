@@ -119,19 +119,9 @@ Our measurement goal is to assess the statistical significance and practical sig
 
 To answer this question, we chose the ‘Case Rate per 100,000’ measure as our outcome variable, and the Face Mask Mandate date column as our measured variable. We operationalized the mandate column by creating a new indicator binary variable, with 0 representing no face mask mandate as of 10/30/2020 and 1 representing having a face mask mandate policy in place on or before 10/30/2020. In conjunction with considering the case rate, we also know that the Test Rate per 100,000 measure is extremely important to include given that a positive case cannot be identified sans testing. These three variables constitute our base case model to help explain whether mandatory face mask usage has a measurable impact on the COVID-19 case rate.
 
-
-# Causal Diagram
-
-Below is the causal diagram that our model is built from. In blue is case rate per 100k, the main dependent variable. We hypothesize that mandatory mask policies (green) have a causal effect on the case rate per 100k. In yellow are the control variables that we use. Finally, in red we have all the other terms combined as a single error term.
-
-
-![](images/Causal Diagram.png)
-
-
-
 # Data Summary and Cleaning
 
-The data used in the model is taken from the provided covid_19 dataset. The provided dataset is up-to-date as of October 30th, 2020. The final model uses eight variables that are either created from existing data and/or supplemented from online resources. Below are the adjustments made to variables that were either created or supplemented.
+The data used in the model is taken from the provided covid_19 dataset. The provided dataset is up-to-date as of October 30th, 2020. Below are the adjustments made to variables that were either created or supplemented.
 
 **Mask Use**
 
@@ -169,20 +159,56 @@ df %>%
   )
 ```
 
+It is also expected taht the more a state is able to provide tests, the higher the case rate will tend to be. This idea is supported 
+
+```{r warning=FALSE}
+
+df %>%
+  ggplot(aes(y = case_rate, x = test_rate)) +
+  geom_point() +
+  labs(
+    title = "Relationship between Test Rate and Case Rate by state",
+    x = "Test Rate per 100k",
+    y = "Case Rate per 100K"
+  )
+```
+
+To find the other control variables that best demonstrated the use of masks, we grouped similar variables together to find which variable or group of variables had the combination of highest correlation with case rate per 100k, and low colinearity with other variables. 
+
+The following figure shows the correlation between case rate per 100k and various ethnic populations. The case rate per 100k variable has the highest correlation with the black population variable.
+
 ```{r warning=FALSE, message=FALSE}
 ggpairs(data = df, columns = c(4,seq(14,20,2)))
 ```
 
+Next, we look at case rate per 100k and the duration and days that people in the US had to shelter in place and businesses had to close (if at all). From the correlation plots below, the number of days that people had to shelter in place and the number of days a business had to close had the expected negative correlation with case rate per 100k. Another set of interesting variables are the beginning shelter date and business close date. The general correlation shows that the later a state started closures, the higher the case rate per 100k it tended to have.
+
 ```{r warning=FALSE, message=FALSE}
-ggpairs(data = df, columns = c(4,25:31))
+ggpairs(data = df, columns = c(4,25:28))
+ggpairs(data = df, columns = c(4,29:31))
 ```
+
+From the figure below we can see that most variables have a low correlation (< 12%) with case rate per 100k. The exception may be the political leaning of the political party. The density plot and boxplot of case_rate ~ gov_party visually suggests that a relationship may exist.
 
 ```{r warning=FALSE, message=FALSE}
 ggpairs(data = df, columns = c(4,38:43))
 ```
 
+Poverty rate and household income have decent correlation with case rate and are not colinear with each other. Life expectancy and weekly unemployment max amount have high correlation with the case rate but are highly colinear poverty rate. 
 ```{r warning=FALSE, message=FALSE}
-ggpairs(data = df, columns = c(4,44:49))
+ggpairs(data = df, columns = c(4,44:50))
+``` 
+
+The extreme age groups, 0-18, 19-25, 55-64, and 65+, have the highest correlation with case rate per 100k. There is also significant colinearity across the age groups as well, so additional steps such as combining or excluding age groups may occcur.
+
+```{r warning=FALSE, message=FALSE}
+ggpairs(data = df, columns = c(4,51:56))
+``` 
+
+Finally, from the Google Mobility report, we see that the change in mobility of transit stations has the highest correlation with case rate per 100k. Each mobility statistic is highly colinear with one another.
+
+```{r warning=FALSE, message=FALSE}
+ggpairs(data = df, columns = c(4,57:62))
 ``` 
 
 COVID-19 is a virus that spreads from person to person and the first stop gaps implemented were the closing of non-essential businesses and a Shelter-in-Place (SIP) mandate. A square-root transformation of the data better interprets the data as the correlation increases. It suggests that there may be a diminishing return for each additional day sheltered in place.
@@ -212,7 +238,7 @@ summary(sip)$r.squared
 summary(sqrt_sip)$r.squared
 ```
 
-Similarly, the number of days a non-essential business was closed would greatly reduce the number of human-human interactions. A log transformation of the number of businesses days closed also serves to increase the correlation slightly.
+Similarly, the number of days a non-essential business was closed would greatly reduce the number of human-human interactions.
 
 ```{r warning=FALSE}
 df %>%
@@ -225,6 +251,23 @@ df %>%
   )
 ```
 
+One interesting interaction that was seen in the correlation plots was that the states who implemented shelter-in-place earlier tended to see a lower case rate per 100k.
+
+```{r warning = FALSE}
+df %>%
+  ggplot(aes(y = case_rate, x = beg_shelter_date)) +
+  geom_point() + 
+  labs(
+    title = "Relationship between start of SIP and case rate by state",
+    x = "Start of SIP",
+    y = "Case Rate per 100k"
+  )
+
+sipstart <- lm(case_rate ~ beg_shelter_date, data = df)
+busclosestart <- lm(case_rate ~ beg_bus_close_date, data = df)
+summary(sipstart)$r.squared
+summary(busclosestart)$r.squared
+```
 
 The number of positive cases a state has is strictly dependent on the number of tests administered. From the scatter plot below, we do see a positive relationship between the number of tests administered and the number of cases. Log and square-root transformations do not lead to a higher correlation therefore the variable is left as is.
 
@@ -247,12 +290,22 @@ var(df[ ,c(4, 51:56)], na.rm=TRUE)
 
 ```{r warning = FALSE}
 df$age_below_25 = df$age_0_18 + df$age_19_25
+df$age_above_54 = df$age_55_64 + df$age_65
 df %>%
   ggplot(aes(y = case_rate, x = age_below_25)) +
   geom_point() +
   labs(
     title = "Relationship between Pct Below 25 and Case Rate by state",
     x = "% of Population Below 25",
+    y = "Case Rate per 100K"
+  )
+
+df %>%
+  ggplot(aes(y = case_rate, x = age_above_54)) +
+  geom_point() +
+  labs(
+    title = "Relationship between Pct above 54 and Case Rate by state",
+    x = "% of Population Above 54",
     y = "Case Rate per 100K"
   )
 ```
@@ -263,7 +316,7 @@ We also examine the case rate vs ethnicity. The black population is much more co
 var(df[ ,c(4,14,16,18,20)], na.rm=TRUE)
 ```
 
-We more closely examine the correlation between black population percentage, the most highly correlated ethnicity variable, and case rate. From the graph below, we see that there is a slightly concaving arc as the proportion of black increases. ~~We apply a log transformation to see if the correlation increases and see that it does.~~
+We more closely examine the correlation between black population percentage, the most highly correlated ethnicity variable, and case rate. From the graph below, we see that there is a slightly concaving arc as the proportion of black increases.
 
 ```{r warning = FALSE}
 df$black_pop[df$black_pop == 0] = 0.01
@@ -307,6 +360,12 @@ df %>%
     y = "Case Rate per 100K"
   )
 ```
+
+# Causal Diagram
+
+Taking into account the trends observed from the plots in the exploratory data analysis, we chose the best control variables and their various transformations to supplement the main dependent and independent variables. The final causal model is shown below. In blue is case rate per 100k, the main dependent variable. We hypothesize that mandatory mask policies (green) have a causal effect on the case rate per 100k. In yellow are the control variables that we use. Finally, in red we have all the other terms combined as a single error term.
+
+![](images/Causal Diagram.png)
 
 # Model Building
 
