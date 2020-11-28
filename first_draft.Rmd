@@ -14,6 +14,7 @@ library(sandwich)
 library(stargazer)
 library(knitr)
 library(GGally)
+library(naniar)
 ```
 
 ```{r data schema, include = FALSE}
@@ -139,9 +140,37 @@ The number of days each state was under the Shelter-in-Place mandate. This data 
 
 The number of days each state closed non-essential businesses. Similar to the days in SIP, missing data was populating through research of the state's specific mandates, then calculated by subtracting the end and start dates.
 
-**Percentage of Pouplation: Black**
+**Percentage of Population: Black**
 
 Observations that were marked as "< 0.01" were rounded up to 0.01 for a log transformation to be applied.
+
+# Data Structure
+
+There are a total of 6 data types in the dataset: character, numeric, integer, factor, dates, and logical. Any variable with “date” in the name is read in as a date. Logical variables include mask_use, mask_legal, and maskbus_use. Variables read in as factors include gov_party, and tests_positive. The only character variable is the state name. Finally, all other variables are read in as either numeric or an integer. All numeric and integer values are real and nonnegative.
+
+# Distribution of Numeric and Integer Variables
+
+The summary table of the numeric and integer variables show that there are no obvious errors to the dataset.
+
+```{r}
+#for (i in seq(seq(1,length(df),6))){
+#df[,i:i+5] %>%
+#  select(where(is.numeric)) %>%
+#  summary()
+#}
+
+df %>%
+  select(where(is.numeric)) %>%
+  summary()
+```
+
+# Missing Values
+
+```{r}
+vis_miss(df)
+```
+
+Missing values were treated on a case-by-case basis. Many of the missing values could be populated through research (e.g., when did state X go into shelter-in-place?) 
 
 # Exploratory Data Analysis
 
@@ -159,7 +188,7 @@ df %>%
   )
 ```
 
-It is also expected taht the more a state is able to provide tests, the higher the case rate will tend to be. This idea is supported 
+It is also expected that the more a state is able to provide tests, the higher the case rate will tend to be. This idea is supported 
 
 ```{r warning=FALSE}
 
@@ -173,22 +202,22 @@ df %>%
   )
 ```
 
-To find the other control variables that best demonstrated the use of masks, we grouped similar variables together to find which variable or group of variables had the combination of highest correlation with case rate per 100k, and low colinearity with other variables. 
+To find the other control variables that best demonstrated the use of masks, we grouped similar variables together to find which variable, or group of variables, had the combination of highest correlation with case rate per 100k, and low collinearity with other variables. 
 
-The following figure shows the correlation between case rate per 100k and various ethnic populations. The case rate per 100k variable has the highest correlation with the black population variable.
+We plot the correlation between case rate per 100k and the percent population of various ethnic groups. The correlation plot shows that the case rate per 100k variable has the highest correlation with the black population variable.
 
 ```{r warning=FALSE, message=FALSE}
 ggpairs(data = df, columns = c(4,seq(14,20,2)))
 ```
 
-Next, we look at case rate per 100k and the duration and days that people in the US had to shelter in place and businesses had to close (if at all). From the correlation plots below, the number of days that people had to shelter in place and the number of days a business had to close had the expected negative correlation with case rate per 100k. Another set of interesting variables are the beginning shelter date and business close date. The general correlation shows that the later a state started closures, the higher the case rate per 100k it tended to have.
+Next, we look at case rate per 100k and the duration that people in the US had to shelter in place  (SIP) and businesses had to close (if at all). From the correlation plots below, the number of days that people had to SIP and the number of days a business had a negative correlation with case rate per 100k, meaning the more days of SIP and businesses had to close, the lower the case rate tended to be. Another set of interesting variables are the beginning shelter date and business close date. The general correlation shows that the later a state started closures, the higher the case rate per 100k it tended to have.
 
 ```{r warning=FALSE, message=FALSE}
 ggpairs(data = df, columns = c(4,25:28))
 ggpairs(data = df, columns = c(4,29:31))
 ```
 
-From the figure below we can see that most variables have a low correlation (< 12%) with case rate per 100k. The exception may be the political leaning of the political party. The density plot and boxplot of case_rate ~ gov_party visually suggests that a relationship may exist.
+From the figure below we can see that most variables have a correlation of less than 12% with case rate per 100k. The exception may be the political leaning of the political party. The density plot and boxplot of case_rate ~ gov_party visually suggests that a relationship may exist. 
 
 ```{r warning=FALSE, message=FALSE}
 ggpairs(data = df, columns = c(4,38:43))
