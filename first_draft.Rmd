@@ -398,61 +398,122 @@ Taking into account the trends observed from the plots in the exploratory data a
 
 # Model Building
 
+```{r model set-up, include=FALSE}
+# variable transformations needed for model building
+# may be DELETED after same transformations were implemented in the EDA section
+df$age_below_25 = df$age_0_18 + df$age_19_25
+df$black_pop[df$black_pop == 0] = 0
+```
+
+## Data
+
+### Sources
+
+### Variable Operationalization
+
 ## Model 1
 
-### Model description
+### Objective
+
+Model 1 is our simplest model. It aims to measure the strength of the relationship between the presence of mandatory mask use policy and the covid case rate in US states. It has no other covariate, with the exception of test rate, which we included as a way to control for the impact that different test availabilities might have on the reported case rate by state.
+
+### Exploratory Data Analysis
+
+#### Case Rate
+
+#### Case Rate vs. Mandatory Mask Policy
+
+#### Case Rate vs. Test Rate
+
+#### Correlation Matrix
+
+### Casual Diagram for Model 1
+
+### Model specification
 
 Our first regression model has **Covid-19 Case Rate per 100,000 habitants** as our outcome variable and two covariates: our variable of interest (**Mandatory Mask Use**) and **Test Rate per 100,000 habitants**.  
 
-We have included **Test Rate** because we've seen before there is variability in the test rates among US states which could potentially affect the integrity of our outcome variable - e.g. states presenting lower case rate not because actual infection rate by covid is lower, but because test availability is lower. In order to mitigate such shortcomings we decided to have **Test Rate** as an independent variable since the very first version of our regression model.  
+We have included **Test Rate** because we've seen before there is variability in the test rates among US states which could potentially affect the integrity of our outcome variable - e.g. states presenting lower case rate not because actual infection rate by covid is lower, but because test availability is lower. In order to mitigate such shortcomings we decided to have **Test Rate** as a covariate present since the very first version of our regression model.  
 
 Our Model 1 has the format: 
 
-case_rate = $\beta_0$ + $\beta_1$ * mask_use + $\beta_2$ * test_rate  
+case_rate = $\beta_0$ + $\beta_1$ * mandatory_mask_use + $\beta_2$ * test_rate  
 
 ### Model summary
 
 ```{r model_1 summary, warning = FALSE}
 model_1 <- lm(case_rate ~ mask_use + test_rate, data = df)
 std_errors = sqrt(diag(vcovHC(model_1)))
-stargazer(model_1, se = std_errors, type = "latex", title = "Model 1 Summary")
+stargazer(model_1, se = std_errors, type = "text", title = "Model 1 Summary")
 ```
 
 
 ### Overall model significance (F-test)
 
-Under a significance level of 0.05, we can reject the null hypothesis ($H_0: \beta_1 = \beta_2 = 0$) in favor of our fuller model ($H_a: \beta_1 \ne 0$ and $\beta_2 \ne 0$), which now includes the covariates **mask_use** and **test_rate**. The F-Statistic = 7.416, and the p-value < 0.01. Our Model 1 has an adjusted R-squared of 0.204.  
+Under a significance level of 0.05, we can reject the null hypothesis ($H_0: \beta_1 = \beta_2 = 0$) in favor of our fuller model ($H_a: \beta_1 \ne 0$ or $\beta_2 \ne 0$), which now includes the covariates **mask_use** and **test_rate**. The F-Statistic = 7.416, and the p-value < 0.01. Our Model 1 has an adjusted R-squared of 0.204.  
+
+```{r model_1 F-test}
+model_0 <- lm(case_rate ~ 1, data = df)
+anova(model_0, model_1, test = "F")
+```
 
 ### Coefficient significance (t-test)  
 
-Under a significance level of 0.05, we can accept the alternative hypotheses $H_{a1}: \beta_1 \ne 0$ and $H_{a2}: \beta_2 \ne 0$, which means both of our covariates do explain part of the variability observed in the **case_rate**.  
+Under a significance level of 0.05, we can accept the alternative hypotheses $H_{a}: \beta_1 \ne 0$, which means **mandatory_mask_use** do explain part of the variability observed in the **case_rate**.  
 
-Our estimate for $\beta_1$ (the coefficient of our variable of interest) is $\tilde \beta_1 = -990.5$, with a standard error of 307.0 and a p-value of 0.002.  
+On the other hand, for **test_rate** we failed to reject the null hypothesis that $H_{0}: \beta_2 = 0$. For this model specification, **test_rate** is not contributing as expected to absorb part of the variability observed in **case_rate**.
+
+Our estimate for $\beta_1$ (the coefficient of our variable of interest) is $\tilde \beta_1 = -990.5$, with a standard error of 324.8 and a p-value of 0.004.  
 
 ```{r model_1 coefficient test}
-coeftest(model_1, vcovHC = vcovHC(model_1, type = "HC3"))
+coeftest(model_1, vcovHC)
 ```
 
 ### Practical significance  
 
-According to Model 1, states that have adopted mandatory mask use would expect to have -990.5 covid cases per 100,000 habitants. Given that the median of covid case rate among US states is of 2,633 per 100,000 habitants, with 1st Quartile = 2,040 and 3rd quartile = 3,516, the coefficient estimate has practical significance, with an effect size corresponding to a reduction of 37.6% of the median of the covid case rate among states.  
+According to Model 1, states that have adopted mandatory mask use would expect to have -990.5 covid cases per 100,000 habitants. Given that the median of covid case rate among US states is of 2,633 per 100,000 habitants, the coefficient estimate has practical significance, with an effect size corresponding to a reduction of 37.6% of the median of the covid case rate among states.  
 
 ## Model 2
 
-### Model description
+### Objective
 
-Our second regression model has **Covid-19 Case Rate per 100,000 habitants** as our outcome variable and five covariates: our variable of interest (**Mandatory Mask Use**), **Test Rate per 100,000 habitants**, **Percentage of Population Below 25 Years Old**, **Log of Percentage of Black Ethnicity in Total Population**, and **Human Mobility Change in Transit Stations**.  
+Model 2 is our best model. It aims to strike a balance between accuracy and parsimony and reflect our best understanding of the relationships among key variables.  
 
-Model 2 represents our best understanding of the relationship among the variables, striking a balance between accuracy and parsimony. Our variable of interest continues to be **Mandatory Mask Use** and our measurement goal continues to be to assess the significance and practical impact of **Mandatory Mask Use** in the **Case Rate**. The other mediating variables we added to the model work like *controls* in order to allow us to better capture the significance and practical relevance of the **Mandatory Mask Use** in the decrease of **Case Rate**.    
+It includes the same covariates used in model 1 and new covariates related to structural demographics and behavioral differences among US states that might correlate with part of the variability observed in the case rate. 
+
+We don't know a priori exactly which variables we are going to use. What we know is that we want to select one variable to represent each one of these three broader categories that align with our initial hypotheses:
+- Age demographics
+- Socio-economic demographics
+- Actual social distancing
+
+Model selection will be based on EDA. For each one of these categories, we will look for variables that correlate better with case rate, and that do not have high collinearity with the other variables we already have in our model.
+
+### Exploratory Data Analysis
+
+#### Case Rate vs. Age Demographics
+
+#### Case Rate vs. Socio-Economic Demographics
+
+#### Case Rate vs. Actual Social Distancing
+
+#### Correlation Matrix
+
+### Casual Diagram for Model 2
+
+### Model specification
+
+Our second regression model has **Covid-19 Case Rate per 100,000 habitants** as our outcome variable and five covariates: our variable of interest (**Mandatory Mask Use**), **Test Rate per 100,000 habitants**, **Percentage of Population Below 25 Years Old**, **Log of Percentage of Black Ethnicity in Total Population + 1**, and **Human Mobility Change in Transit Stations**.  
+
+Our variable of interest continues to be **Mandatory Mask Use** and our measurement goal continues to be to assess the significance and practical impact of **Mandatory Mask Use** in the **Case Rate**. We expect the other mediating variables we added to the model will allow us to better capture the actual significance and practical relevance of the **Mandatory Mask Use** in the **Case Rate**.    
 
 Our Model 2 has the format: 
 
-case_rate = $\beta_0$ + $\beta_1$ * mask_use + $\beta_2$ * test_rate + $\beta_3$ * age_below_25 + $\beta_4$ * log(black_pop) + $\beta_5$ * mob_TS  
+case_rate = $\beta_0$ + $\beta_1$ * mandatory_mask_use + $\beta_2$ * test_rate + $\beta_3$ * age_below_25 + $\beta_4$ * log(black_pop + 1) + $\beta_5$ * mob_TS  
 
 ### Model summary
 
 ```{r model_2 summary, warning = FALSE}
-model_2 <- lm(case_rate ~ mask_use + test_rate + age_below_25 + log(black_pop) + mob_TS, data = df)
+model_2 <- lm(case_rate ~ mask_use + test_rate + age_below_25 + log(black_pop + 1) + mob_TS, data = df)
 std_errors = list(
   sqrt(diag(vcovHC(model_1))),
   sqrt(diag(vcovHC(model_2)))
@@ -463,7 +524,7 @@ stargazer(model_1, model_2, se = std_errors, type = "text", title = "Model 2 Sum
 
 ### Overall model significance (F-test)
 
-Under a significance level of 0.05, we can reject the null hypothesis (**Model 1**) in favor of our fuller **Model 2**, which now includes the covariates **mask_use**, **test_rate**, **age_below_25**, **log(black_pop)**, and **mob_TS**. The F-Statistic = 16.258, and the p-value < 0.01. Our Model 2 has an adjusted R-squared of 0.593. Our residual standard error decreased from 1,013.8 to 725.3. **Model 2** is the most robus model we will build in the scope of this study.  
+Under a significance level of 0.05, we can reject the null hypothesis (**Model 1**) in favor of our fuller **Model 2**, which now includes the covariates **mask_use**, **test_rate**, **age_below_25**, **log(black_pop + 1)**, and **mob_TS**. The F-Statistic = 19.733, and the p-value < 0.01. Our Model 2 has an adjusted R-squared of 0.633.
 
 ```{r model_2 F-test}
 anova(model_1, model_2, test = "F")
@@ -472,39 +533,55 @@ anova(model_1, model_2, test = "F")
 
 ### Coefficient significance (t-test)  
 
-Under a significance level of 0.05, we can accept the alternative hypotheses: $H_{a1}: \beta_1 \ne 0$, $H_{a2}: \beta_2 \ne 0$, $H_{a3}: \beta_3 \ne 0$, and $H_{a4}: \beta_4 \ne 0$, which means 4 out of 5 of our covariates do explain part of the variability observed in the **case_rate**.  
+Under a significance level of 0.05, we can accept all the alternative hypotheses: $H_{a1}: \beta_1 \ne 0$, $H_{a2}: \beta_2 \ne 0$, $H_{a3}: \beta_3 \ne 0$, $H_{a4}: \beta_4 \ne 0$, and \beta_5 \ne 0$. It means all of our 5 covariates do help explain part of the variability observed in the **case_rate**.  
 
-Our estimate for $\beta_1$ (the coefficient of our variable of interest) is $\tilde \beta_1 = -961.4$, with a standard error of 240.0 and a p-value of 0.0002. It continues to be statistically significant and with an estimated value that changed little from **Model 1** (-990.5) to **Model 2** (-961.4).
+Our estimate for $\beta_1$ (the coefficient of our variable of interest) is $\tilde \beta_1 = -919.3$, with a standard error of 227.0 and a p-value of 0.0002. It continues to be statistically significant, and with an estimated value that did not change a lot from **Model 1** (-990.5) to **Model 2** (-919.2).
 
 ```{r model_2 coefficient test}
-coeftest(model_2, vcovHC = vcovHC(model_2, type = "HC3"))
+coeftest(model_2, vcovHC)
 ```
 
 ### Practical significance  
 
-According to Model 2, states that have adopted mandatory mask use would expect to have -961.4 covid cases per 100,000 habitants. Given that the median of covid case rate among US states is of 2,633 per 100,000 habitants, with 1st Quartile = 2,040 and 3rd quartile = 3,516, the coefficient estimate has practical significance, with an effect size corresponding to a reduction of 36.5% of the median of the covid case rate among states.
+According to Model 2, states that have adopted mandatory mask use would expect to have -919.2 covid cases per 100,000 habitants. Given that the median of covid case rate among US states is of 2,633 per 100,000 habitants, the coefficient estimate has practical significance, with an effect size corresponding to a reduction of 34.9% of the median of the covid case rate among states.
 
 ## Model 3
 
-### Model description
+### Objective
 
-Our third regression model has **Covid-19 Case Rate per 100,000 habitants** as our outcome variable and seven covariates: our variable of interest (**Mandatory Mask Use**), **Test Rate per 100,000 habitants**, **Percentage of Population Below 25 Years Old**, **Log of Percentage of Black Ethnicity in Total Population**, 
+Model 3 includes all the previous covariates, and many other covariates, erring on the side of inclusion. A key purpose of this model is to demonstrate the robustness of our coefficient for mandatory mask use.  
+
+In this sense, we will include other covid related measures states have adopted that might also contribute to explain case rate variability among US states. We recognize that part of these measures may have some collinearity with mandated mask use, which might reduce the overall explanatory ability of our model.
+
+What we want to verify is if even under more harsh conditions our coefficient for mandatory mask use continues to be statistically significant, and with a practical significance close to what we measured in model 2 specification.
+
+Model 3 should in this sense be read as an *acid test* to further validate the results we obtained with model 2.
+
+### Exploratory Data Analysis
+
+#### Case Rate vs. Other Covid Related Policies
+
+#### Correlation Matrix
+
+### Casual Diagram for Model 3
+
+### Model specification
+
+Our third regression model has **Covid-19 Case Rate per 100,000 habitants** as our outcome variable and seven covariates: our variable of interest (**Mandatory Mask Use**), **Test Rate per 100,000 habitants**, **Percentage of Population Below 25 Years Old**, **Log of Percentage of Black Ethnicity in Total Population + 1**, 
 **Human Mobility Change in Transit Stations**, **Number of Days of Shelter in Place**, and **Number of Days of Non-Essential Businesses Closure**.  
 
 **Model 3** includes the previous covariates, and other new 2 covariates, erring on the side of inclusion. A key purpose of **Model 3** is to demonstrate the robustness of the results of our measurement goal ($\tilde \beta_1$). New variables on **Model 3** represent other commom policies US states have adopted to combat the virus spread. They have some collinearity with mask use as it would be expected, since typically a state enact not a single, but a set of policies against covid-19.  
 
 Despite the fact that **Model 3** loses some explanatory power due to the inclusion of the new variables, the result we would like to highlight is that our coeficient of interest ($\tilde \beta_1$) continued to be both statistically significant, and with an estimated value that has practical significance in terms of informing public policies in the combat to the virus.  
 
-**Model 3** main role was to work as an *acid test* of the relevance of mandatory mask use in reducing the case rate of covid 19 among US states. And, in this sense, it helped us to confirm the robustness of our study results.  
-
 Our Model 3 has the format: 
 
-case_rate = $\beta_0$ + $\beta_1$ * mask_use + $\beta_2$ * test_rate + $\beta_3$ * age_below_25 + $\beta_4$ * log(black_pop) + $\beta_5$ * mob_TS + $\beta_6$ * shelter_days + $\beta_7$ * bus_close_days  
+case_rate = $\beta_0$ + $\beta_1$ * mask_use + $\beta_2$ * test_rate + $\beta_3$ * age_below_25 + $\beta_4$ * log(black_pop + 1) + $\beta_5$ * mob_TS + $\beta_6$ * shelter_days + $\beta_7$ * bus_close_days  
 
 ### Model summary
 
 ```{r model_3 summary, warning = FALSE}
-model_3 <- lm(case_rate ~ mask_use + test_rate + age_below_25 + log(black_pop) + mob_TS + shelter_days + bus_close_days, data = df)
+model_3 <- lm(case_rate ~ mask_use + test_rate + age_below_25 + log(black_pop + 1) + mob_TS + shelter_days + bus_close_days, data = df)
 std_errors = list(
   sqrt(diag(vcovHC(model_1))),
   sqrt(diag(vcovHC(model_2))),
@@ -516,24 +593,27 @@ stargazer(model_1, model_2, model_3, se = std_errors, type = "text", title = "Mo
 
 ### Overall model significance (F-test)
 
-Under a significance level of 0.05, we can not reject the null hypothesis (**Model 2**) in favor of our fuller **Model 3**, which now includes the covariates **shelter_days** and **bus_close_days**. Our Residual Std. Error almost remained the same, even with the inclusion of two new variables. This demonstrates that there is collinearity between our new variables and the old ones. The inclusion of the new variables did not help to increase the explained variability of the outcome variable. The adjusted R-squared of **Model 3** is of 0.572.   
+Under a significance level of 0.05, we can not reject the null hypothesis (**Model 2**) in favor of our fuller **Model 3**, which now includes the covariates **shelter_days** and **bus_close_days**. Our Residual Std. Error almost remained the same, even with the inclusion of two new variables. This demonstrates that there is collinearity between our new variables and the existing ones. The inclusion of the new variables did not help to increase the explained variability of the outcome variable. The adjusted R-squared of **Model 3** decreased to 0.616.   
 
 On the other hand, as it was asserted above, our focus of interest on **Model 3** is not on the overall roustness of the model (for that sake we have **Model 2**), but more on performing an *acid test* around the statistical and practical significance of our coeficient of interest ($\tilde \beta_1$).
 
+```{r model_3 F-test}
+anova(model_2, model_3, test = "F")
+```
 
 ### Coefficient significance (t-test)  
 
-Under a significance level of 0.05, we can accept the alternative hypotheses: $H_{a1}: \beta_1 \ne 0$, $H_{a3}: \beta_3 \ne 0$, and $H_{a4}: \beta_4 \ne 0$, which means only 3 out of 7 of our covariates do explain part of the variability observed in the **case_rate**.  
+Under a significance level of 0.05, we can accept the alternative hypotheses: $H_{a1}: \beta_1 \ne 0$,  $H_{a3}: \beta_3 \ne 0$, and $H_{a4}: \beta_4 \ne 0$, which means only 3 out of 7 of our covariates do explain part of the variability observed in the **case_rate**.  
 
-Our estimate for $\beta_1$ (the coefficient of our variable of interest) is $\tilde \beta_1 = -940.7$, with a standard error of 284.9 and a p-value of 0.0006. It continues to be statistically significant and with an estimated value that changed little from **Model 2** (-961.4) to **Model 3** (-940.7).
+Our estimate for $\beta_1$ (the coefficient of our variable of interest) is $\tilde \beta_1 = -913.8$, with a standard error of 271.8 and a p-value of 0.0016. It continues to be statistically significant and with an estimated value that changed little from **Model 2** (-919.3) to **Model 3** (-913.8).
 
 ```{r model_3 coefficient test}
-coeftest(model_3, vcovHC = vcovHC(model_3, type = "HC3"))
+coeftest(model_3, vcovHC)
 ```
 
 ### Practical significance  
 
-According to Model 3, states that have adopted mandatory mask use would expect to have -940.7 covid cases per 100,000 habitants. Given that the median of covid case rate among US states is of 2,633 per 100,000 habitants, with 1st Quartile = 2,040 and 3rd quartile = 3,516, the coefficient estimate has practical significance, with an effect size corresponding to a reduction of 35.7% of the median of the covid case rate among states.
+According to Model 3, states that have adopted mandatory mask use would expect to have -913.8 covid cases per 100,000 habitants. Given that the median of covid case rate among US states is of 2,633 per 100,000 habitants, the coefficient estimate has practical significance, with an effect size corresponding to a reduction of 34.7% of the median of the covid case rate among states.
 
 ## CLM Assumptions & Limitations
 
