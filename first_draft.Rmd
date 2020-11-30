@@ -708,68 +708,144 @@ As seen above, we can see that the residuals for all 3 models do follow a straig
 
 # Omitted Variables Discussion
 
+```{r}
+quar <- read.csv("ovb.csv")
+
+quar <- data.frame(quar)
+
+df2 <- merge(df, quar, by="state")
+```
+
 As we are attempting to study an exceedingly-complex real life phenomenon, naturally there will be an element of bias in our models. We selected what we believed to be the most appropriate variables influencing the COVID-19 case rate per 100,000, which included a range of logistical, social, ethnic and population-based metrics (as provided in the dataset). Nevertheless, even though the dataset was extensive, it is impossible to completely predict every factor that might influence both our dependent variable and independent variables - this is reflected in the model performance metrics (for example $R^2$, which would be 1 if our model perfectly represented the real world phenomenon we were trying to model) and error parameter. 
 
-As such, we have selected several omitted variables that we believe to contribute to the COVID-19 case rate and our chosen explanatory variable of interest, i.e. whether or not a State implemented mandatory mask use laws. These are all envisaged real-world phenomena that we do not have any information regarding. Though we can predict the potential relationship between the omitted variables and the dependent and independent variables for all of our suggested omitted variables. 
+As such, we have selected 5 hypothetical omitted variables that we predict might exert a hidden effect upon the regression model, specifically upon the dependent variable (i.e. cases per 100,000) and the primary independent variable of interest (i.e. whether the state implemented a mask use policy). These are all envisaged real-world phenomena that we do not have any data on, however for 3 of these, we can use proxy variables as provided in the dataset and external sources that we can utilize in bias estimation. We can predict the potential relationship between the omitted variables and the dependent and independent variables, and the direction of bias for all of our suggested omitted variables. We cannot estimate the size of the bias for the omitted variables that we do not have a proxy or direct information regarding, however.
 
-The seven independent variables included in our most complete model are **Mandatory Mask Use**, **Test Rate per 100,000 inhabitants**, **Percentage of Population Below 25 Years Old**, **Log of Percentage of Black Ethnicity in Total Population**, and **Human Mobility Change in Transit Stations**. We will discuss how the potential omitted variables relate to our outcome variable and the explanatory variable of interest, **Mandatory Mask Use**. 
+For our 'best' model (model 2), the coefficient for Mandatory Mask Use is ~-919, with a S.E. of of ~227 and a p-value of < 0.01. This can be interpreted to mean that *ceteris paribus*, a state that enforces mandatory mask use laws reduces the overall case rate by ~919/100,000 or ~1%. We will subsequently discuss how we predict the omitted variables could influence this coefficient and what it might mean.
 
-In the final model, the coefficient for Mandatory Mask Use is ~-941, with a S.E. of of ~285 and a p-value of < 0.01. This can be interpreted to mean that ***ceteris paribus***, a state that enforces mandatory mask use laws reduces the overall case rate by ~941/100,000 or ~1%. 
+For the 3 omitted variables that we either have proxy (Travel restrictions, % Republicans) or direct data (Average annual temperature) for, we will calculate the omitted variable bias using the base model usng the following system:
+
+$$
+\begin{align}
+\tilde{Y} = \tilde{\beta_0} + \tilde{\beta_1}X_1 + \epsilon_1\\
+\end{align}
+$$
+
+This specifies the biased estimation. Where $\tilde{Y}$ is the dependent variable (i.e. positive cases per 100,000 population), $\tilde{\beta_0}$ is the y-intercept term, $\tilde{\beta_1}$ the coefficient of the independent variable of interest (i.e. whether the state implemented a mask use policy, $X_1$) and $\epsilon_1$ the associated error term.
+
+By including the omitted variable, the theoretically 'true' or unbiased estimator becomes:
+
+$$
+\begin{align}
+\hat{Y} = \hat{\beta_0} + \hat{\beta_1}X_1 + \hat{\beta_2}X_2 + \epsilon_2\\
+\end{align}
+$$
+
+Where $\hat{Y}$ is the dependent variable (i.e. positive cases per 100,000 population), $\hat{\beta_0}$ is the y-intercept term, $\hat{\beta_1}$ the unbiased coefficient of the independent variable of interest (i.e. whether the state implemented a mask use policy, $X_1$), $\hat{\beta_2}$ the unbiased coefficient of the omitted variable $X_2$, and $\epsilon_2$ the modified associated error term.
+
+Subsequently, $\tilde{\beta_1} - \hat{\beta_1}$ is used to calculate the actual omitted variable bias.
 
 ## Skepticism Towards COVID-19 Control Policies
 
-There is a documented segment of the population that are skeptical towards the existence of COVID-19$^1$. They may view subsequent governmental efforts to control its spread as a conspiracy. In the provided dataset, we do not have any data pertaining to the proportion of people in any State that are COVID-19 skeptics (if it can even be quantitatively measured). Nevertheless, in an ideal world if we could quantify this metric, we predict that the more skeptics there are in a State, the less likely they will be to observe preventative public-health measures and will thus contract COVID-19 at a higher rate. Therefore, we predict a positive relationship between the State population of COVID-19 skeptics and the case rate per 100,000. 
+There is a documented segment of the population that are skeptical towards the existence of COVID-19$^1$. They may view subsequent governmental efforts to control its spread as a conspiracy. In the provided dataset, we do not have any data pertaining to the proportion of people in any State that are COVID-19 skeptics, however potential surrogate measures could relate to whether the State had elected Republican politicians (see $1, 4$). Subsequently, we predict that the more skeptics there are in a State, the less likely they will be to observe preventative public-health measures and will thus contract COVID-19 at a higher rate. Therefore, we predict a positive relationship between the State population of COVID-19 skeptics and the case rate per 100,000. 
 
 Similarly, the more COVID-19 skeptics there are among a State's poulation, the more likely it is that their elected local government will align themselves with their views and resist enforcement of mandatory mask usage policies. We therefore predict a negative relationship between the population of COVID-19 skeptics in a State and State enforcement of mandatory mask laws.
 
-As the relationship between the omitted variable and the dependent variable is positive, while the relationship between the omitted variable and the explanatory variable in question is negative, the overall effect of the omitted variable bias will be negative. If we could gather information about a State's population of COVID-19 skeptics and add this variable to our model, doing so would cause the coefficient for mandatory mask use to increase, or move towards 0. 
+As the relationship between the omitted variable and the dependent variable is positive, while the relationship between the omitted variable and the explanatory variable in question is negative, the overall effect of the omitted variable bias will be negative. If we could gather information about a State's population of COVID-19 skeptics and add this variable to our model, doing so would cause the coefficient for mandatory mask use to increase, or move towards 0. In other words, the effect-reinforcing influence of a hypothetical 'skeptics' omitted variable on the dependent variable would offset the potential effect-mitigating impact of a mask use policy on positive case rates, ultimately leading to a smaller reduction (i.e. >-919) in positive cases attributed to a mandatory mask use policy. 
 
 
 ![](images/covid_skeptics.png){width=300px}
 
-
-
 ## State Healthcare Infrastructure
 
-The standard of healthcare infrastructure may vary across States. For example, there may be fewer healthcare facilities in largely rural States, compared to those that are more urban. As a result, populations in States with poorer healthcare infrastructure may not have easy access to COVID testing or diagnosis. If we could measure and quantify this a State healthcare infrastructure metric, we predict that it would be postively related to COVID-19 case rate per 100,000 population. That is, the higher the theoretical "State healthcare infrastructure" score, the higher number of COVID-19 tests performed, translating to a higher positive case rate. 
+The standard of healthcare infrastructure may vary across States. For example, there may be fewer healthcare facilities in largely rural States, compared to those that are more urban. As a result, populations in States with poorer healthcare infrastructure may not have easy access to COVID testing or diagnosis. A possible proxy variable that we do have access to could be looking at a State's population density, however specific transformations would likely have to be performed to somehow translate it to a State's healthcare infrastrucutre (e.g. doctors per X unit of population). If we could measure and quantify this State healthcare infrastructure metric, we predict that it would be postively related to COVID-19 case rate per 100,000 population. That is, the higher the theoretical "State healthcare infrastructure" score, the higher number of COVID-19 tests performed, translating to a higher positive case rate. 
 
-Similarly, governments in States with poor healthcare infrastructure might be worried about their population being unable to access treatment for COVID-19, and might be more likely to enact efforts to prevent its spread among the population, which may include enforcing mask use. We therefore predict a negative relationship between a theoretical "State healthcare infrastructure" score and enforcement of laws requiring use of face masks. 
+In theory, governments of States with poor healthcare infrastructure might be worried about their population being unable to access treatment for COVID-19, and might be more likely to enact efforts to prevent its spread among the population, which could overwhelm a under-funded/under-resourced healthcare system (even if this hasn't been the observed trend in the real world). For the purposes of analysis, however, we therefore predict a negative relationship between a theoretical "State healthcare infrastructure" score and enforcement of laws requiring use of face masks. 
 
-As the relationship between the omitted variable and the independent variable is positive, and the relationship between the omitted variable and and dependent variable is negative, overall omitted variable bias effect is predicted to be negative. If we could compute a "State healthcare infrastructure" metric and include it in our model, its addition would cause the mandatory mask use coefficient to increase, or move towards 0. 
+As the relationship between the omitted variable and the independent variable is positive, and the relationship between the omitted variable and and dependent variable is negative, overall omitted variable bias effect is predicted to be negative. If we could compute a "State healthcare infrastructure" metric and include it in our model its addition would cause the mandatory mask use coefficient to increase, or move towards 0. In other words, by taking into account the effect of healthcare infrastructure on the regression system, we would expect to see a reduction in purported benefit of implementing mask use policy as demonstrated by our 'best' model: This would mean a mask use coefficient >-919. 
 
 ![](images/healthcare_infrastructure.png){width=300px}
 
 ## Travel Restrictions
 
-Certain states have imposed travel restrictions to prevent the spread of COVID-19$^2$. These may vary from recommending visitors to quarantine, to requiring them to provide proof of a negative COVID-19 test before being granted entry. We therefore predict that these measures to prevent the spread of COVID-19 are negatively related to the case rate per 100,000 population. That is, States that have enforced some kind of travel restriction have fewer overall cases. 
+Certain states have imposed travel restrictions to prevent the spread of COVID-19$^2$. These may vary from recommending visitors to quarantine, to requiring them to provide proof of a negative COVID-19 test before being granted entry. The State-mandated quarantine variables are the closest potential proxies, and we can potentially use these to calculate the effect of the omitted variable bias for this variable. We predict that these measures to prevent the spread of COVID-19 are negatively related to the case rate per 100,000 population. That is, States that have enforced some kind of travel restriction have fewer overall cases. 
 
 Similarly, if a State government is ready to impose travel restrictions, they are also likely to enforce other public health measures such as mandatory wearing of face masks in public places. Therefore we predict a positive relationship between State enforcement of travel restrictions and implementation of mandatory face mask policies. 
 
-As the relationship between the omitted variable and the dependent variable is negative, and the relationship between the omitted variable and the independent variable is positive, we predict an overall negative omitted variable bias on the model. By adding a variable pertaining to State enforcement of travel restrictions to the model, we would expect to see an increase in the mandatory mask use coefficient. As it is negative in the existing model, we would expect to see it move towards 0. 
-
+As the relationship between the omitted variable and the dependent variable is negative, and the relationship between the omitted variable and the independent variable is positive, we predict an overall negative omitted variable bias on the model. By adding a variable pertaining to State enforcement of travel restrictions to the model, we would expect to see an increase in the mandatory mask use coefficient. As it is negative in the existing model, we would expect to see it move towards 0. In other words, the amount of effect (i.e. reduction in number of positive cases) that can be attributed to the mask use policy in our 'best' model will be reduced (i.e. smaller reduction in number of positive cases) due to the effect of quarantine measures and the coefficient is expected to be >-919. 
 
 ![](images/travel_restrictions.png){width=300px}
 
+We prove our omitted variable bias predictions in this instance, by using a proxy from the 'COVID-19 US State Policy Dataset' specifically pertaining to whether a state required all visitors entering from another state to quarantine and adding it to a regression equation between the main variable of interest (mask use policies) and the dependent variable (positive cases per 100,000). Due to the potentially complicated effects exerted upon the dependent and independent variables in a model with >1 variable, we will only use the dependent and independent variables of interest (plus the omitted variable in the unbiased estimation) to demonstrate omitted variable bias:
+
+```{r ovb quarantine, warning = FALSE}
+base_model <- lm(case_rate ~ mask_use, data = df2)
+model_quar <- lm(case_rate ~ mask_use + state_quarantine, data = df2)
+
+stargazer(base_model, model_quar, type = "text", title = "Omitted Variable Bias Comparison: Travel Restrictions")
+```
+
+As we can see here, the overall effect of including quarantine information upon our variables of interest is concordant with predictions, and we observe an increase (i.e. moving towards 0) in the overall coefficient value for our independent variable of interest (mask use policies) meaning that lesser effect is attributed to it in a more 'true' system. We can further calculate and prove that our predictions of negative omitted variable bias were correct by subtracting the value of the coefficient of interest in the unbiased estmation (i.e. $\hat{\beta_1}$) from that of the 'false' model (i.e. $\tilde{\beta_1}$):
+
+$$
+\begin{align}
+\tilde{\beta_1} - \hat{\beta_1} = -830.0-(-808.5)\\
+\approx -21.5
+\end{align}
+$$
 
 ## Average Temperature 
 
-It is thought that the dry air occuring in cold weather enhances the spread of the flu virus$^3$. Certain States in the U.S. have cooler average climates than others, and may also experience colder winters. We therefore predict that there is a negative relationship between a State's average temperature and the positive case rate per 100,000 population. 
+It is thought that the dry air occuring in cold weather enhances the spread of the flu virus$^3$. Certain States in the U.S. have cooler average climates than others, and may also experience colder winters. We therefore predict that there is a negative relationship between a State's average temperature and the positive case rate per 100,000 population. As acquiring annual State temperature data is relatively easy, we have compiled this information from external sources, to be utilized to prove our predictions.
 
 Similarly, a local government is likely aware of the link between cooler temperatures and viral spread, and are therefore more likely to enact mandatory mask use policies to mitigate this phenomenon. We therefore predict that the lower a State's average temperature, the more likely the government will be to enforce mandatory mask use policies, a negative relationship. 
 
-As the relationship between the omitted variable and both the dependent and independent variables is negative, the overall effect of the average temperature omitted variable will be positive. That is, if we add an average temperature variable to our model, we would expect to see a decrease in the coefficient for mandatory mask use. As the mandatory mask use coefficient is already negative, we would expect it to become more negative or move further away from 0.
+As the relationship between the omitted variable and both the dependent and independent variables is negative, the overall effect of the average temperature omitted variable will be positive. That is, if we add an average temperature variable to our model, we would expect to see a decrease in the coefficient for mandatory mask use. As the mandatory mask use coefficient is already negative, we would expect it to become more negative or move further away from 0. In other words, by including State temperature data we would expect to see an increase in the purported benefit of mask use policies (i.e. a coefficient <-961, or moving further away from 0 in the negative direction) in reducing the number of positive COVID-19 cases. 
 
 ![](images/average_temperature.png){width=300px}
 
+We prove our omitted variable bias prediction in this instance, by using externally-sourced data pertaining to a State's average annual temperature and adding it to a regression equation between the main variable of interest (mask use policies) and the dependent variable (positive cases per 100,000). Due to the potentially complicating effects exerted upon the dependent and independent variables in a model with >1 variable, we will only use the dependent and independent variables of interest (plus the omitted variable in the 'true' model) to demonstrate omitted variable bias:
+
+```{r ovb climate, warning = FALSE}
+model_climate <- lm(case_rate ~ mask_use + temp, data = df2)
+
+stargazer(base_model, model_climate, type = "text", title = "Omitted Variable Bias Comparison: Average Annual Temperature")
+```
+
+As we can see here, the overall effect of including average annual State temperature information upon our variables is concordant with predictions, and we observe an increase (i.e. moving towards 0) in the overall coefficient value for our independent variable of interest (mask use policies) meaning that lesser effect is attributed to it in a more 'true' system. We can further calculate and prove that our predictions of negative omitted variable bias were correct by subtracting the value of the coefficient of interest in the unbiased estmation (i.e. $\hat{\beta_1}$) from that of the 'false' model (i.e. $\tilde{\beta_1}$): 
+
+$$
+\begin{align}
+\tilde{\beta_1} - \hat{\beta_1} \approx -830.0-(-775.0)\\
+\approx -55.0
+\end{align}
+$$
+
 ## Percentage of Republican Voters
 
-There is evidence to show that States that are majority Republican are experiencing the majority of new COVID-19 infections. Though the reasons for this are likely complex, it has been demonstrated, for example, that Republican voters are less likely to observe social distancing regulations, relative to Democratic voters$^4$. We therefore predict that there is a positive relationship between proportion of Republican-voting population in a State and the positive case rate per 100,000 people. 
+There is evidence to show that States that are majority Republican are experiencing the majority of new COVID-19 infections. Though the reasons for this are likely complex, it has been demonstrated, for example, that Republican voters are less likely to observe social distancing regulations, relative to Democratic voters$^4$. We have information provided on the State's ruling officials, which we can take as a proxy for the majority political inclination. We predict that there is a positive relationship between proportion of Republican-voting population in a State and the positive case rate per 100,000 people. 
 
 Similarly, States with a majority of Republican-leaning voters are likely to elect Republican officials who will pander to their voter base. We therefore predict that States with a higher percentage of Republican voters, will be less likely to enforce mandatory mask use laws i.e. a negative relationship.
 
-As there is a positive relationship between the omitted variable (% of Republican voters) and the dependent variable, and a negative relationship between the omitted variable and the independent variable, the overall omitted variable bias will be negative. If we include the proportion of Republican voters as a variable in our model, we would expect to see the coefficient for mandatory mask use to increase or move towards 0. 
+As there is a positive relationship between the omitted variable (% of Republican voters) and the dependent variable, and a negative relationship between the omitted variable and the independent variable, the overall omitted variable bias will be negative. If we include the proportion of Republican voters as a variable in our model, we would expect to see the coefficient for mandatory mask use to increase or move towards 0. In other words, by including information regarding the proportion of Republican affiliates in a State, we would expect to see an decrease in the purported benefit of implementing mask use policites (i.e. the coefficient moves towards 0, or becomes >-961) in reducing the number of positive cases. 
 
 ![](images/percentage_republicans.png){width=300px}
+
+We can actually calculate the omitted variable bias in this instance, by using the political affiliation of the elected officials as proxies for majority political inclination in the State. States with Republican officials are represented by the binary variable 1, and Democrats 0. Due to the potentially complicating effects exerted upon the dependent and independent variables in a model with >1 variable, we will only use the dependent and independent variables of interest (plus the omitted variable in the 'true' model) to demonstrate omitted variable bias:  
+
+```{r ovb republicans, warning = FALSE}
+model_party <- lm(case_rate ~ mask_use + political_party, data = df2)
+
+stargazer(base_model, model_party, type = "text", title = "Omitted Variable Bias Comparison: Republican Majority")
+```
+
+As we can see here, the overall effect upon the variables of interest caused by including information about a State's political inclination is concordant with predictions. We observe an increase (i.e. moving towards 0) in the overall coefficient value for our independent variable of interest (mask use policies) meaning that lesser effect is attributed to it in a more 'true' system. We can further calculate and prove that our predictions of negative omitted variable bias were correct by subtracting the value of the coefficient of interest in the unbiased estmation (i.e. $\hat{\beta_1}$) from that of the 'false' model (i.e. $\tilde{\beta_1}$):
+
+$$
+\begin{align}
+\tilde{\beta_1} - \hat{\beta_1} \approx -830.0-(-688.0)\\
+\approx -142.0
+\end{align}
+$$
 
 # Conclusion
 
