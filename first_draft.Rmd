@@ -541,8 +541,6 @@ df_mod2 <- merge(df_race, df_socio, by = c("state", "case_rate")) %>%
 
 #### Case Rate vs. Age Demographics
 
-##### Exporatory Data Analysis
-
 The summary table of the numeric variables show that there are no obvious errors to the new age variables. Additionally, there are no missing datapoints.
 
 ```{r summary stats age}
@@ -579,8 +577,6 @@ df_age %>%
 
 #### Case Rate vs. Socio-Economic Demographics
 
-##### Exploratory Data Analysis
-
 Next, we look at the influence of race and various socio-economic factors. Again, we begin by ensuring the data has been recorded properly and that there are not many missing values. We see that all the population values make sense and that there are no missing values.
 
 ```{r summary stats race}
@@ -599,41 +595,77 @@ From the correlation plot below, we see that the percent of those who identify a
 ggpairs(df_race[,-1])
 ```
 
-Next we look towards the socio-economic factors. From the socioeconomic factorsr, we see that poverty rate and household income have the highest absolute correlation with case rate per 100k. They are comparable to the correlation of black_pop variable. The black_pop variable also has high collinearity with household_income, poverty_rate, life_expectancy, and unemployment_rate. The percent black population variable may act as a good variable that can control for many of these factors.
+Next we look towards the socio-economic factors. From the pairs plot below, we see that poverty rate and household income have the highest absolute correlation with case rate per 100k. They are comparable to the correlation of black_pop variable seen above. Additionally, the black_pop variable has high collinearity with household_income, poverty_rate, life_expectancy, and unemployment_rate. Because of this, the percent black population variable may act as a variable that can control for many of these factors, in addition to race factors.
 
 ```{r warning=FALSE, fig.height = 6, message=FALSE}
 ggpairs(df_socio[,-1])
 ```
 
+We explore the bivariate relationship between case_rate and black_pop below. The untransformed relationship shows a tapering off in case_rate as the % black increases.
 
-
-```{r message=FALSE}
-df_race$black_pop[df$black_pop == 0] = 0.01
+```{r message=FALSE, fig.height = 5, fig.width = 5}
 df_race %>%
   ggplot(aes(y = case_rate, x = black_pop)) +
   geom_point() +
-  geom_smooth(method = "lm", level = 0)
+  geom_smooth(method = "lm", level = 0) +
   labs(
-    title = "Percentage Black in Total Population and Case Rate by state",
-    x = "% of Population: Black",
+    title = "Case Rate vs % Black by state",
+    x = "% Black",
     y = "Case Rate per 100K"
   )
+```
 
+To account for this taper, we apply a log plus 1 transformation. Because some of our black population values are equal to 0, a log transformation would not apply. To avoid this, each value is increased by 1 prior to the log transform. From the graph below, the transformation better predicts some of the earlier values.
+
+```{r message=FALSE, fig.height = 5, fig.width = 5}
 df_race %>%
   ggplot(aes(y = case_rate, x = log1p(black_pop))) +
   geom_point() +
+  geom_smooth(method = "lm", level = 0) + 
   labs(
-    title = "Percentage Black in Total Population and Case Rate by state",
-    x = "% of Population: Black",
+    title = "Case Rate vs log plus 1 (% Black by state)",
+    x = "log plus 1(% Black)",
     y = "Case Rate per 100K"
   )
 ```
 
 #### Case Rate vs. Actual Social Distancing
 
-#### Correlation Matrix
+The Google Human mobility data includes information on the amount of time spent at various public locations compared to Google's baseline data. The values are recorded as percentage changes with possible values ranging from -100 to 100. A look at the summary statistics of the values fail to show any significant errors in values. Finally, there are no missing data points here. 
+
+```{r summary stats age}
+df_dist %>%
+  select(where(is.numeric)) %>%
+  summary()
+
+df_dist[,c(-1,-2)] %>% 
+  vis_miss() + 
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+Below is the pairs plot for the mobility data and case_rate. All the mobility data are highly collinear with one another, so for the model, we will select mob_TS as it has the highest correlation with case_rate at 0.237. 
+
+```{r warning=FALSE, fig.height = 6, message=FALSE}
+ggpairs(df_dist[,-1])
+```
+
+The figure below shows the bivariate relationship between case_rate and the change in mobility at Transit Stations. There is not a clear and explainable transformation that can be applied here, so the variable will be left as is for the second model.
+
+```{r warning=FALSE, fig.height = 6, message=FALSE}
+df_dist %>%
+  ggplot(aes(y = case_rate, x = mob_TS)) +
+  geom_point() +
+  geom_smooth(method = "lm", level = 0) +
+  labs(
+    title = "Relationship Between Human Mobility: Transit Stations and Case Rate by state",
+    x = "Percentage Change in Human Mobility: Transit Stations",
+    y = "Case Rate per 100K"
+  )
+```
 
 ### Casual Diagram for Model 2
+
+
 
 ### Model specification
 
