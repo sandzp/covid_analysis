@@ -1,6 +1,8 @@
 ---
-title: "w203_lab2: regression models draft"
-output: html_notebook
+title: 'w203_lab2: regression models draft'
+output:
+  pdf_document: default
+  html_notebook: default
 ---
 
 ```{r setup, include = FALSE}

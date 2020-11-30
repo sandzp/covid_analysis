@@ -1,8 +1,10 @@
 ---
-title: "Lab 2: Regression to Study the Spread of Covid-19"
+title: 'Lab 2: Regression to Study the Spread of Covid-19'
 author: 'w203: Statistics for Data Science'
 date: "10/28/2020"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}

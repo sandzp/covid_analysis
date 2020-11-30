@@ -99,6 +99,8 @@ df <- read_delim(
 
 # Causal Diagram
 
+Below is the causal diagram that our model is built from. In blue is case rate per 100k, the main dependent variable. In green is the mask policy, our main independent variable. In yellow are the control variables that we use. Finally, in red we have all the other terms combined as a single error term.
+
 ![Causal Diagram](Causal Diagram.png)
 
 

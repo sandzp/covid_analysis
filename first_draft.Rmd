@@ -153,12 +153,6 @@ There are a total of 6 data types in the dataset: character, numeric, integer, f
 The summary table of the numeric and integer variables show that there are no obvious errors to the dataset.
 
 ```{r}
-#for (i in seq(seq(1,length(df),6))){
-#df[,i:i+5] %>%
-#  select(where(is.numeric)) %>%
-#  summary()
-#}
-
 df %>%
   select(where(is.numeric)) %>%
   summary()
