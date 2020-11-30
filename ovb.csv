@@ -1,0 +1,52 @@
+state,state_quarantine,political_party,temp
+Alabama,0,1,62.8
+Alaska,1,1,26.6
+Arizona,0,1,60.3
+Arkansas,0,1,60.4
+California,0,0,59.4
+Colorado,0,0,45.1
+Connecticut,0,0,49
+Delaware,1,0,55.3
+District of Columbia,0,0,55
+Florida,0,1,70.7
+Georgia,0,1,63.5
+Hawaii,1,0,70
+Idaho,1,1,44.4
+Illinois,0,0,51.8
+Indiana,0,1,51.7
+Iowa,0,1,47.8
+Kansas,0,0,54.3
+Kentucky,1,0,55.6
+Louisiana,0,0,66.4
+Maine,1,0,41
+Maryland,0,1,54.2
+Massachusetts,1,1,47.9
+Michigan,0,0,44.4
+Minnesota,0,0,41.2
+Mississippi,0,1,63.4
+Missouri,0,1,54.5
+Montana,1,0,42.7
+Nebraska,0,1,48.8
+Nevada,0,0,49.9
+New Hampshire,0,1,43.8
+New Jersey,0,0,52.7
+New Mexico,1,0,53.4
+New York,0,0,45.4
+North Carolina,0,0,59
+North Dakota,0,1,40.4
+Ohio,0,1,50.7
+Oklahoma,0,1,59.6
+Oregon,0,0,48.4
+Pennsylvania,0,0,48.8
+Rhode Island,1,0,50.1
+South Carolina,0,1,62.4
+South Dakota,0,1,45.2
+Tennessee,0,1,57.6
+Texas,0,1,64.8
+Utah,1,1,48.6
+Vermont,1,1,42.9
+Virginia,0,0,55.1
+Washington,0,0,48.3
+West Virginia,0,1,51.8
+Wisconsin,0,0,43.1
+Wyoming,1,1,42
