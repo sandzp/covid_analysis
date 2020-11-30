@@ -92,7 +92,7 @@ schema <- cols(
 
 ```{r csv import, include = FALSE}
 df <- read_delim(
-  file = "clean_covid_19_LB_version.csv",
+  file = "covid_19_clean.csv",
   delim = ";",
   col_names = TRUE,
   col_types = schema,
@@ -120,33 +120,6 @@ Our measurement goal is to assess the statistical significance and practical sig
 
 To answer this question, we chose the ‘Case Rate per 100,000’ measure as our outcome variable, and the Face Mask Mandate date column as our measured variable. We operationalized the mandate column by creating a new indicator binary variable, with 0 representing no face mask mandate as of 10/30/2020 and 1 representing having a face mask mandate policy in place on or before 10/30/2020. In conjunction with considering the case rate, we also know that the Test Rate per 100,000 measure is extremely important to include given that a positive case cannot be identified sans testing. These three variables constitute our base case model to help explain whether mandatory face mask usage has a measurable impact on the COVID-19 case rate.
 
-# Data Summary and Cleaning
-
-The data used in the model is taken from the provided covid_19 dataset. The provided dataset is up-to-date as of October 30th, 2020. Below are the adjustments made to variables that were either created or supplemented.
-
-**Mask Use**
-
-This binary/logical variable was created by assigning a 1 if the state had a mask mandate and 0 if it did not (based on the mask mandate date column). Some of the data from the mask mandate was missing and was manually research and populated.
-
-**Percent Age Below 25**
-
-This column was created by combining the 0-18 and 18-25 age groups. No other adjustments were made.
-
-**Days in Shelter-in-Place**
-
-The number of days each state was under the Shelter-in-Place mandate. This data was missing some data and supplemented by researching and populating the missing data. The column was creating by subtracting the end and start dates.
-
-**Days Businesses Closed**
-
-The number of days each state closed non-essential businesses. Similar to the days in SIP, missing data was populating through research of the state's specific mandates, then calculated by subtracting the end and start dates.
-
-**Percentage of Population: Black**
-
-Observations that were marked as "< 0.01" were rounded up to 0.01 for a log transformation to be applied.
-
-# Data Structure
-
-There are a total of 6 data types in the dataset: character, numeric, integer, factor, dates, and logical. Any variable with “date” in the name is read in as a date. Logical variables include mask_use, mask_legal, and maskbus_use. Variables read in as factors include gov_party, and tests_positive. The only character variable is the state name. Finally, all other variables are read in as either numeric or an integer. All numeric and integer values are real and nonnegative.
 
 # Distribution of Numeric and Integer Variables
 
@@ -182,7 +155,7 @@ df %>%
   )
 ```
 
-It is also expected that the more a state is able to provide tests, the higher the case rate will tend to be. This idea is supported 
+It is also expected that the more a state is able to provide tests, the higher the case rate will tend to be. This idea is supported
 
 ```{r warning=FALSE}
 
@@ -367,7 +340,7 @@ summary(blk_pop)$r.squared
 summary(log_blk_pop)$r.squared
 ```
 
-The Google Human mobility data is compiled daily by Google and includes information on the amount of time spent at various public locations compared to Google's baseline data. Some of this data is included in the dataset and assumed that it was taken the same day the rest of the dataset was compiled on October 30th, 2020. We find that the highest correlation of the mobility variables lies with the change in Transit Stations (mob_TS). Oddly enough, Wyoming is one of three states with a positive change in transit station use. Wyoming also has by far the largest change at 21% with South Dakota next at 3%. 
+We find that the highest correlation of the mobility variables lies with the change in Transit Stations (mob_TS). Oddly enough, Wyoming is one of three states with a positive change in transit station use. Wyoming also has by far the largest change at 21% with South Dakota next at 3%. 
 
 ```{r variance-covariance matrix of case_rate vs. mobility variables, warning=FALSE}
 var(df[ ,c(4, 57:62)], na.rm=TRUE)
@@ -388,7 +361,7 @@ df %>%
 
 Taking into account the trends observed from the plots in the exploratory data analysis, we chose the best control variables and their various transformations to supplement the main dependent and independent variables. The final causal model is shown below. In blue is case rate per 100k, the main dependent variable. We hypothesize that mandatory mask policies (green) have a causal effect on the case rate per 100k. In yellow are the control variables that we use. Finally, in red we have all the other terms combined as a single error term.
 
-![](images/Causal Diagram.png)
+![](images/final_causal_diagram.png)
 
 # Model Building
 
@@ -401,9 +374,31 @@ df$black_pop[df$black_pop == 0] = 0
 
 ## Data
 
-### Sources
+The data used in the model is taken from the provided covid_19 dataset. The provided dataset is up-to-date as of October 30th, 2020. Additionally, the covid_19 dataset uses the Google Human mobility metrics. Google Human mobility data is compiled daily by Google and includes information on the amount of time spent at various public locations compared to Google's baseline data. Some of this data is included in the dataset and assumed that it was taken the same day the rest of the dataset was compiled on October 30th, 2020. Below are the adjustments made to variables that were either created or supplemented.
+
+There are a total of 6 data types in the dataset: character, numeric, integer, factor, dates, and logical. Any variable with “date” in the name is read in as a date. Logical variables include mask_use, mask_legal, and maskbus_use. Variables read in as factors include gov_party, and tests_positive. The only character variable is the state name. Finally, all other variables are read in as either numeric or an integer. All numeric and integer values are real and nonnegative.
 
 ### Variable Operationalization
+
+**Mask Use**
+
+This binary/logical variable was created by assigning a 1 if the state had a mask mandate and 0 if it did not (based on the mask mandate date column). 
+
+**Percent Age Below 25**
+
+This column was created by combining the 0-18 and 18-25 age groups. No other adjustments were made.
+
+**Days in Shelter-in-Place**
+
+The number of days each state was under the Shelter-in-Place mandate. This data was missing some data and supplemented by researching and populating the missing data. The column was creating by subtracting the end and start dates.
+
+**Days Businesses Closed**
+
+The number of days each state closed non-essential businesses. Similar to the days in SIP, missing data was populating through research of the state's specific mandates, then calculated by subtracting the end and start dates.
+
+**Percentage of Population: Black**
+
+Observations that were marked as "< 0.01" were rounded up to 0.01 for a log transformation to be applied.
 
 ## Model 1
 
@@ -411,17 +406,61 @@ df$black_pop[df$black_pop == 0] = 0
 
 Model 1 is our simplest model. It aims to measure the strength of the relationship between the presence of mandatory mask use policy and the covid case rate in US states. It has no other covariate, with the exception of test rate, which we included as a way to control for the impact that different test availabilities might have on the reported case rate by state.
 
+```{r initialize model 1}
+df_mod1 <- df %>%
+  select(case_rate, mask_use, test_rate)
+```
+
 ### Exploratory Data Analysis
+
+The summary table of the numeric variables show that there are no obvious errors to the variables used in the initial model. Additionally, there are no missing values
+
+```{r summary stats model 1, fig.height = 3, fig.width = 4}
+df_mod1 %>%
+  select(where(is.numeric)) %>%
+  summary()
+
+vis_miss(df_mod1)
+```
 
 #### Case Rate
 
+Unsure what univariate analysis we would do. 
+
 #### Case Rate vs. Mandatory Mask Policy
+
+Next, we look at the correlation between the variables of interest. Based on our preliminary causal model, a mask-use policy should lead to a decrease in the number of covid cases. The boxplot below suggests that this initial assumption at least holds to some degree. 
+
+```{r warning=FALSE, message=FALSE, fig.height = 3, fig.width = 5}
+df_mod1 %>%
+  ggplot(aes(y = case_rate, x = mask_use)) +
+  geom_boxplot() +
+  labs(
+    title = "Mandatory Mask Use vs Case Rate by State",
+    x = "Mandatory Mask Use",
+    y = "Case Rate per 100K"
+  )
+```
 
 #### Case Rate vs. Test Rate
 
-#### Correlation Matrix
+Similarly, the scatter plot below reinforces the idea that the more tests that are performed, the higher the number of cases.
+
+```{r}
+df_mod1 %>%
+  ggplot(aes(y = case_rate, x = test_rate)) +
+  geom_point() +
+  geom_smooth(method = "lm", level = 0) + 
+  labs(
+    title = "Case Rate vs Test Rate by State",
+    x = "Test Rate per 100k",
+    y = "Case Rate per 100K"
+  )
+```
 
 ### Casual Diagram for Model 1
+
+![](images/model1_causal_diagram.png)
 
 ### Model specification
 
@@ -482,11 +521,113 @@ We don't know a priori exactly which variables we are going to use. What we know
 
 Model selection will be based on EDA. For each one of these categories, we will look for variables that correlate better with case rate, and that do not have high collinearity with the other variables we already have in our model.
 
-### Exploratory Data Analysis
+```{r initialize model 2}
+df_race <- df %>%
+  select(state, case_rate, white_pop, black_pop, hispanic_pop, other_pop)
+
+df_socio <- df %>%
+  select(state, case_rate, homeless_total, poverty_rate, household_income, life_expectancy, unemployment_rate, black_pop)
+
+df_dist <- df %>%
+  select(state, case_rate, `mob_R&R`, `mob_G&P`, mob_P, mob_TS, mob_WP, mob_RES)
+
+df_age <- df %>%
+  select(state, case_rate, age_0_18, age_19_25, age_26_34, age_35_54, age_55_64, age_65)
+
+df_mod2 <- merge(df_race, df_socio, by = c("state", "case_rate")) %>% 
+  merge(., df_dist, by = c("state", "case_rate")) %>% 
+  merge(., df_age, by = c("state", "case_rate"))
+```
 
 #### Case Rate vs. Age Demographics
 
+##### Exporatory Data Analysis
+
+The summary table of the numeric variables show that there are no obvious errors to the new age variables. Additionally, there are no missing datapoints.
+
+```{r summary stats age}
+df_age %>%
+  select(where(is.numeric)) %>%
+  summary()
+
+df_age %>% 
+  vis_miss() + 
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+
+```{r warning=FALSE, fig.height = 6, message=FALSE}
+ggpairs(df_age[,-1])
+```
+
+The age group below 25 has the highest correlation with case_rate. By combining the two age groups, the high correlation is maintained and we are able to better capture the affect of age on the case_rate, while avoiding the effects of collinearity between the two age groups if they were both added to the model.
+
+```{r message=FALSE}
+df_age$age_below_25 = df$age_0_18 + df$age_19_25
+
+df_age %>%
+  select(case_rate, age_below_25) %>%
+  ggplot(aes(y = case_rate, x = age_below_25)) + 
+  geom_point() +
+  geom_smooth(method = "lm", level = 0) + 
+  labs(
+    title = "Case Rate vs Percent Age Below 25",
+    x = "Percent Age Below 25",
+    y = "Case Rate per 100k"
+  )
+```
+
 #### Case Rate vs. Socio-Economic Demographics
+
+##### Exploratory Data Analysis
+
+Next, we look at the influence of race and various socio-economic factors. Again, we begin by ensuring the data has been recorded properly and that there are not many missing values. We see that all the population values make sense and that there are no missing values.
+
+```{r summary stats race}
+df_race[,c(-1,-2)] %>%
+  select(where(is.numeric)) %>%
+  summary()
+
+df_race[,c(-1,-2)] %>% 
+  vis_miss() + 
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+From the correlation plot below, we see that the percent of those who identify as black has the highest absolute correlation with the number of cases. 
+
+```{r warning=FALSE, fig.height = 6, message=FALSE}
+ggpairs(df_race[,-1])
+```
+
+Next we look towards the socio-economic factors. From the socioeconomic factorsr, we see that poverty rate and household income have the highest absolute correlation with case rate per 100k. They are comparable to the correlation of black_pop variable. The black_pop variable also has high collinearity with household_income, poverty_rate, life_expectancy, and unemployment_rate. The percent black population variable may act as a good variable that can control for many of these factors.
+
+```{r warning=FALSE, fig.height = 6, message=FALSE}
+ggpairs(df_socio[,-1])
+```
+
+
+
+```{r message=FALSE}
+df_race$black_pop[df$black_pop == 0] = 0.01
+df_race %>%
+  ggplot(aes(y = case_rate, x = black_pop)) +
+  geom_point() +
+  geom_smooth(method = "lm", level = 0)
+  labs(
+    title = "Percentage Black in Total Population and Case Rate by state",
+    x = "% of Population: Black",
+    y = "Case Rate per 100K"
+  )
+
+df_race %>%
+  ggplot(aes(y = case_rate, x = log1p(black_pop))) +
+  geom_point() +
+  labs(
+    title = "Percentage Black in Total Population and Case Rate by state",
+    x = "% of Population: Black",
+    y = "Case Rate per 100K"
+  )
+```
 
 #### Case Rate vs. Actual Social Distancing
 
