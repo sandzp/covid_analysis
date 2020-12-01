@@ -120,258 +120,6 @@ Our measurement goal is to assess the statistical significance and practical sig
 
 To answer this question, we chose the ‘Case Rate per 100,000’ measure as our outcome variable, and the Face Mask Mandate date column as our measured variable. We operationalized the mandate column by creating a new indicator binary variable, with 0 representing no face mask mandate as of 10/30/2020 and 1 representing having a face mask mandate policy in place on or before 10/30/2020. In conjunction with considering the case rate, we also know that the Test Rate per 100,000 measure is extremely important to include given that a positive case cannot be identified sans testing. These three variables constitute our base case model to help explain whether mandatory face mask usage has a measurable impact on the COVID-19 case rate.
 
-
-# Distribution of Numeric and Integer Variables
-
-The summary table of the numeric and integer variables show that there are no obvious errors to the dataset.
-
-```{r}
-df %>%
-  select(where(is.numeric)) %>%
-  summary()
-```
-
-# Missing Values
-
-```{r}
-vis_miss(df)
-```
-
-Missing values were treated on a case-by-case basis. Many of the missing values could be populated through research (e.g., when did state X go into shelter-in-place?) 
-
-# Exploratory Data Analysis
-
-The initial exploration of our data is driven by our main dependent variable - case rate per 100k - and independent variable - a policy for mandatory mask use. Based on our causal model, a mask-use policy should lead to a decrease in the number of covid cases. The boxplot below suggests that this initial assumption at least holds to some degree.
-
-```{r case rate vs mask use, warning=FALSE}
-
-df %>%
-  ggplot(aes(y = case_rate, x = mask_use)) +
-  geom_boxplot() +
-  labs(
-    title = "Relationship between Mandatory Mask Use and Case Rate by state",
-    x = "Mandatory Mask Use",
-    y = "Case Rate per 100K"
-  )
-```
-
-It is also expected that the more a state is able to provide tests, the higher the case rate will tend to be. This idea is supported
-
-```{r warning=FALSE}
-
-df %>%
-  ggplot(aes(y = case_rate, x = test_rate)) +
-  geom_point() +
-  labs(
-    title = "Relationship between Test Rate and Case Rate by state",
-    x = "Test Rate per 100k",
-    y = "Case Rate per 100K"
-  )
-```
-
-To find the other control variables that best demonstrated the use of masks, we grouped similar variables together to find which variable, or group of variables, had the combination of highest correlation with case rate per 100k, and low collinearity with other variables. 
-
-We plot the correlation between case rate per 100k and the percent population of various ethnic groups. The correlation plot shows that the case rate per 100k variable has the highest correlation with the black population variable.
-
-```{r warning=FALSE, message=FALSE}
-ggpairs(data = df, columns = c(4,seq(14,20,2)))
-```
-
-Next, we look at case rate per 100k and the duration that people in the US had to shelter in place  (SIP) and businesses had to close (if at all). From the correlation plots below, the number of days that people had to SIP and the number of days a business had a negative correlation with case rate per 100k, meaning the more days of SIP and businesses had to close, the lower the case rate tended to be. Another set of interesting variables are the beginning shelter date and business close date. The general correlation shows that the later a state started closures, the higher the case rate per 100k it tended to have.
-
-```{r warning=FALSE, message=FALSE}
-ggpairs(data = df, columns = c(4,25:28))
-ggpairs(data = df, columns = c(4,29:31))
-```
-
-From the figure below we can see that most variables have a correlation of less than 12% with case rate per 100k. The exception may be the political leaning of the political party. The density plot and boxplot of case_rate ~ gov_party visually suggests that a relationship may exist. 
-
-```{r warning=FALSE, message=FALSE}
-ggpairs(data = df, columns = c(4,38:43))
-```
-
-Poverty rate and household income have decent correlation with case rate and are not colinear with each other. Life expectancy and weekly unemployment max amount have high correlation with the case rate but are highly colinear poverty rate. 
-```{r warning=FALSE, message=FALSE}
-ggpairs(data = df, columns = c(4,44:50))
-``` 
-
-The extreme age groups, 0-18, 19-25, 55-64, and 65+, have the highest correlation with case rate per 100k. There is also significant colinearity across the age groups as well, so additional steps such as combining or excluding age groups may occcur.
-
-```{r warning=FALSE, message=FALSE}
-ggpairs(data = df, columns = c(4,51:56))
-``` 
-
-Finally, from the Google Mobility report, we see that the change in mobility of transit stations has the highest correlation with case rate per 100k. Each mobility statistic is highly colinear with one another.
-
-```{r warning=FALSE, message=FALSE}
-ggpairs(data = df, columns = c(4,57:62))
-``` 
-
-COVID-19 is a virus that spreads from person to person and the first stop gaps implemented were the closing of non-essential businesses and a Shelter-in-Place (SIP) mandate. A square-root transformation of the data better interprets the data as the correlation increases. It suggests that there may be a diminishing return for each additional day sheltered in place.
-
-```{r warning=FALSE}
-df %>%
-  ggplot(aes(y = case_rate, x = shelter_days)) +
-  geom_point() +
-  labs(
-    title = "Relationship between Days Sheltered-in-Place and Case Rate by state",
-    x = "Number of Days in SIP",
-    y = "Case Rate per 100K"
-  )
-
-df %>%
-  ggplot(aes(y = case_rate, x = sqrt(shelter_days))) +
-  geom_point() +
-  labs(
-    title = "Relationship between sqrt(Days Sheltered-in-Place) and Case Rate by state",
-    x = "sqrt Number of Days in SIP",
-    y = "Case Rate per 100K"
-  )
-  
-sip <- lm(case_rate ~ shelter_days, data = df)
-sqrt_sip <- lm(case_rate ~ sqrt(shelter_days), data = df)
-summary(sip)$r.squared
-summary(sqrt_sip)$r.squared
-```
-
-Similarly, the number of days a non-essential business was closed would greatly reduce the number of human-human interactions.
-
-```{r warning=FALSE}
-df %>%
-  ggplot(aes(y = case_rate, x = bus_close_days)) +
-  geom_point() +
-  labs(
-    title = "Relationship between Days Businesses Closed and Case Rate by state",
-    x = "Number of Days Businesses Closed",
-    y = "Case Rate per 100K"
-  )
-```
-
-One interesting interaction that was seen in the correlation plots was that the states who implemented shelter-in-place earlier tended to see a lower case rate per 100k.
-
-```{r warning = FALSE}
-df %>%
-  ggplot(aes(y = case_rate, x = beg_shelter_date)) +
-  geom_point() + 
-  labs(
-    title = "Relationship between start of SIP and case rate by state",
-    x = "Start of SIP",
-    y = "Case Rate per 100k"
-  )
-
-sipstart <- lm(case_rate ~ beg_shelter_date, data = df)
-busclosestart <- lm(case_rate ~ beg_bus_close_date, data = df)
-summary(sipstart)$r.squared
-summary(busclosestart)$r.squared
-```
-
-The number of positive cases a state has is strictly dependent on the number of tests administered. From the scatter plot below, we do see a positive relationship between the number of tests administered and the number of cases. Log and square-root transformations do not lead to a higher correlation therefore the variable is left as is.
-
-```{r test_rate linear relationship, warning=FALSE}
-df %>%
-  ggplot(aes(y = case_rate, x = test_rate)) +
-  geom_point() +
-  labs(
-    title = "Relationship between Test Rate and Case Rate by state",
-    x = "Test Rate per 100K",
-    y = "Case Rate per 100K"
-  )
-```
-
-Next, we look at the correlation between case rate and age. From the covariance matrix below, age groups 0-18 and 65+ are not only the most extreme of the age groups, but covariances as well.
-
-```{r variance-covariance matrix of case_rate vs. age variables, warning=FALSE}
-var(df[ ,c(4, 51:56)], na.rm=TRUE)
-```
-
-```{r warning = FALSE}
-df$age_below_25 = df$age_0_18 + df$age_19_25
-df$age_above_54 = df$age_55_64 + df$age_65
-df %>%
-  ggplot(aes(y = case_rate, x = age_below_25)) +
-  geom_point() +
-  labs(
-    title = "Relationship between Pct Below 25 and Case Rate by state",
-    x = "% of Population Below 25",
-    y = "Case Rate per 100K"
-  )
-
-df %>%
-  ggplot(aes(y = case_rate, x = age_above_54)) +
-  geom_point() +
-  labs(
-    title = "Relationship between Pct above 54 and Case Rate by state",
-    x = "% of Population Above 54",
-    y = "Case Rate per 100K"
-  )
-```
-
-We also examine the case rate vs ethnicity. The black population is much more correlated with case rate than any of the other ethnic groups. Being white is also negatively correlated with the case rate.
-
-```{r variance-covariance matrix of case_rate vs. ethnicity, warning=FALSE}
-var(df[ ,c(4,14,16,18,20)], na.rm=TRUE)
-```
-
-We more closely examine the correlation between black population percentage, the most highly correlated ethnicity variable, and case rate. From the graph below, we see that there is a slightly concaving arc as the proportion of black increases.
-
-```{r warning = FALSE}
-df$black_pop[df$black_pop == 0] = 0.01
-df %>%
-  ggplot(aes(y = case_rate, x = black_pop)) +
-  geom_point() +
-  labs(
-    title = "Percentage Black Ethnicity in Total Population and Case Rate by state",
-    x = "% of Population - Ethnicity: Black",
-    y = "Case Rate per 100K"
-  )
-
-df %>%
-  ggplot(aes(y = case_rate, x = log(black_pop))) +
-  geom_point() +
-  labs(
-    title = "Log Percentage Black Ethnicity in Total Population and Case Rate by state",
-    x = "Log(% of Population - Ethnicity: Black)",
-    y = "Case Rate per 100K"
-  )
-
-blk_pop <- lm(case_rate ~ black_pop, data = df)
-log_blk_pop <- lm(case_rate ~ log(black_pop), data = df)
-summary(blk_pop)$r.squared
-summary(log_blk_pop)$r.squared
-```
-
-We find that the highest correlation of the mobility variables lies with the change in Transit Stations (mob_TS). Oddly enough, Wyoming is one of three states with a positive change in transit station use. Wyoming also has by far the largest change at 21% with South Dakota next at 3%. 
-
-```{r variance-covariance matrix of case_rate vs. mobility variables, warning=FALSE}
-var(df[ ,c(4, 57:62)], na.rm=TRUE)
-```
-
-```{r warning= FALSE}
-df %>%
-  ggplot(aes(y = case_rate, x = mob_TS)) +
-  geom_point() +
-  labs(
-    title = "Relationship Between Human Mobility: Transit Stations and Case Rate by state",
-    x = "Percentage Change in Human Mobility: Transit Stations",
-    y = "Case Rate per 100K"
-  )
-```
-
-# Causal Diagram
-
-Taking into account the trends observed from the plots in the exploratory data analysis, we chose the best control variables and their various transformations to supplement the main dependent and independent variables. The final causal model is shown below. In blue is case rate per 100k, the main dependent variable. We hypothesize that mandatory mask policies (green) have a causal effect on the case rate per 100k. In yellow are the control variables that we use. Finally, in red we have all the other terms combined as a single error term.
-
-![](images/final_causal_diagram.png)
-
-# Model Building
-
-```{r model set-up, include=FALSE}
-# variable transformations needed for model building
-# may be DELETED after same transformations were implemented in the EDA section
-df$age_below_25 = df$age_0_18 + df$age_19_25
-df$black_pop[df$black_pop == 0] = 0
-```
-
 ## Data
 
 The data used in the model is taken from the provided covid_19 dataset. The provided dataset is up-to-date as of October 30th, 2020. Additionally, the covid_19 dataset uses the Google Human mobility metrics. Google Human mobility data is compiled daily by Google and includes information on the amount of time spent at various public locations compared to Google's baseline data. Some of this data is included in the dataset and assumed that it was taken the same day the rest of the dataset was compiled on October 30th, 2020. Below are the adjustments made to variables that were either created or supplemented.
@@ -460,6 +208,8 @@ df_mod1 %>%
 
 ### Casual Diagram for Model 1
 
+We found that our initial assumptions have held up to a baseline analysis and are confident that the initial causal diagram below holds true. Colored in blue at the center is the main dependent variable, case rate per 100k. In green, pointing to the case rate (signifying a causal effect on the dependent variable) is the main independent variable, a mask use policy. In yellow is the test rate per 100k as the first control variable. Finally, in red, is the error term that contains all other variables.
+
 ![](images/model1_causal_diagram.png)
 
 ### Model specification
@@ -533,10 +283,6 @@ df_dist <- df %>%
 
 df_age <- df %>%
   select(state, case_rate, age_0_18, age_19_25, age_26_34, age_35_54, age_55_64, age_65)
-
-df_mod2 <- merge(df_race, df_socio, by = c("state", "case_rate")) %>% 
-  merge(., df_dist, by = c("state", "case_rate")) %>% 
-  merge(., df_age, by = c("state", "case_rate"))
 ```
 
 #### Case Rate vs. Age Demographics
@@ -562,6 +308,7 @@ The age group below 25 has the highest correlation with case_rate. By combining 
 
 ```{r message=FALSE}
 df_age$age_below_25 = df$age_0_18 + df$age_19_25
+df$age_below_25 = df$age_0_18 + df$age_19_25
 
 df_age %>%
   select(case_rate, age_below_25) %>%
@@ -665,7 +412,9 @@ df_dist %>%
 
 ### Casual Diagram for Model 2
 
+From our intial causal diagram in the introduction, we have now explored the effect of age, race, socioeconomic conditions, and mobility as it pertains to policies for mask use and the COVID-19 case rate per 100k. For age, we found highest correlation wih those ages less than 25. For race and socioeconomic factors, we found that the population percentage of blacks served as a variable that could control for both race and socioeconomic factors. Using Google's mobility data, we found that the change traffic through transit stations correlated most with case rate per 100k.
 
+![](images/model2_causal_diagram.png)
 
 ### Model specification
 
@@ -724,20 +473,49 @@ What we want to verify is if even under more harsh conditions our coefficient fo
 
 Model 3 should in this sense be read as an *acid test* to further validate the results we obtained with model 2.
 
-### Exploratory Data Analysis
+```{r model 3 variable initialization}
+df_mod3 <- df %>%
+  select(state, case_rate, bus_close_days, shelter_days, mask_legal)
+```
 
 #### Case Rate vs. Other Covid Related Policies
 
-#### Correlation Matrix
+The variables selected in the exploratory phase of model 3 correspond to data revolving around other COVID-19 specific policies. We will be taking a look at the number of days a business had to close, the number of days of shelter-in-place, and whether there was some legal enforcement/pressure to actually use the mask.
+
+From the summary statistics, we can see that the numbers mostly make sense. There are no negative values, and the max number of days in shelter-in-place (since october 30th) would have the SIP start from March 19th, 2020, a full 8 days after the WHO declared COVID-19 a pandemic.
+
+```{r summary stats - other covid policies}
+df_mod3[,c(-1,-2)] %>%
+  select(where(is.numeric)) %>%
+  summary()
+
+df_mod3[,c(-1,-2)] %>% 
+  vis_miss() + 
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+*to be completed*
+
+Explanation for the inclusion of bus_close_days and shelter_days but not mask_legal. I think the pairs function is better than ggpairs here. Looks a bit cleaner and easier to interpret.
+
+```{r warning=FALSE, fig.height = 6, message=FALSE}
+#ggpairs(df_mod3[,-1],
+#         upper = list(combo = "points")
+#        )
+
+pairs(df_mod3[,-1])
+```
 
 ### Casual Diagram for Model 3
+
+![](images/final_causal_diagram.png)
 
 ### Model specification
 
 Our third regression model has **Covid-19 Case Rate per 100,000 habitants** as our outcome variable and seven covariates: our variable of interest (**Mandatory Mask Use**), **Test Rate per 100,000 habitants**, **Percentage of Population Below 25 Years Old**, **Log of Percentage of Black Ethnicity in Total Population + 1**, 
 **Human Mobility Change in Transit Stations**, **Number of Days of Shelter in Place**, and **Number of Days of Non-Essential Businesses Closure**.  
 
-**Model 3** includes the previous covariates, and other new 2 covariates, erring on the side of inclusion. A key purpose of **Model 3** is to demonstrate the robustness of the results of our measurement goal ($\tilde \beta_1$). New variables on **Model 3** represent other commom policies US states have adopted to combat the virus spread. They have some collinearity with mask use as it would be expected, since typically a state enact not a single, but a set of policies against covid-19.  
+**Model 3** includes the previous covariates, and other new 2 covariates, erring on the side of inclusion. A key purpose of **Model 3** is to demonstrate the robustness of the results of our measurement goal ($\tilde \beta_1$). New variables on **Model 3** represent other common policies US states have adopted to combat the virus spread. They have some collinearity with mask use as it would be expected, since typically a state enact not a single, but a set of policies against covid-19.  
 
 Despite the fact that **Model 3** loses some explanatory power due to the inclusion of the new variables, the result we would like to highlight is that our coeficient of interest ($\tilde \beta_1$) continued to be both statistically significant, and with an estimated value that has practical significance in terms of informing public policies in the combat to the virus.  
 
