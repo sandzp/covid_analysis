@@ -583,7 +583,7 @@ The linear regression model assumes a straight-line relationship between the pre
 
 **Residuals vs. Fitted**
 
-```{r fitted_v_residuals, message=FALSE, echo = TRUE}
+```{r}
 
 model_1_residuals = resid(model_1)
 model_2_residuals = resid(model_2)
@@ -638,7 +638,7 @@ Altogether we can see that compared to Model 1, Model 2 does a better job at mee
 
 As our main explanatory variable (mask use) is a binary variable rather than a continous one, we cannot easily demonstrate the effect of the changing model upon the predictor values, however we can see whether the distribution of residuals is constant across the binary categories:
 
-```{r residuals_v_explanatory, message=FALSE, echo=TRUE}
+```{r}
 plot_1_residuals <- model_1 %>%  
   ggplot(aes(x = mask_use, y = model_1_residuals)) + 
   geom_boxplot() +
@@ -702,7 +702,7 @@ plot_3_residuals
 
 We can assess for perfect collinearity by looking to see if there are any dropped coefficients in any of the 3 models:
 
-```{r colinearity_assumptions, echo=TRUE, warning = FALSE}
+```{r}
 std_errors = list(
   sqrt(diag(vcovHC(model_1))),
   sqrt(diag(vcovHC(model_2))),
@@ -751,7 +751,7 @@ There are two methods we can employ to test for homocedasticity of the error ter
 
 This is a method to visually assess for homoscedasticity of the error terms. 
 
-```{r scale_location, echo=TRUE, warning=FALSE}
+```{r}
 plot_1_sl <- model_1 %>%  
   ggplot(aes(x = model_1_predicteds, y = sqrt(abs(model_1_residuals/sd(model_1_residuals))))) + 
   geom_point() + 
@@ -795,19 +795,19 @@ As it is difficult to discern homoscedasticity in the scale-location plot for mo
 
 Running the test for Model 1, we observe a high p-value of 0.7. While we cannot assertively state that there is no heteroscedastic variance, we can safely assume that we fail to reject the null hypothesis:
 
-```{r message=FALSE, echo = TRUE}
+```{r}
 lmtest::bptest(model_1)
 ```
 
 For Model 2, we now observe a very low p-value of ~0.008, and reject the null hypothesis. Although this indicates that our data is heteroscedastic, it is important to note that we are utilizing Robust Standard Errors versus Classical Standard Errors in not just Model 2, but all of our models and their associated tests:
 
-```{r message=FALSE, echo = TRUE}
+```{r}
 lmtest::bptest(model_2)
 ```
 
 Finally in Model 3, running the BP test yields a low p-value of ~0.02, and we reject the null hypothesis. This again indicates that our data is heteroscedastic, but as mentioned previously we solve for this by utilizing Robust Standard Errors in our model and associated tests:
 
-```{r message=FALSE, echo = TRUE}
+```{r}
 lmtest::bptest(model_3)
 ```
 
@@ -815,7 +815,7 @@ lmtest::bptest(model_3)
 
 The final CLM assumption we must test for is normally distributed errors. We can utilize both quantile-quantile (Q-Q) plots and histograms of residuals for each of our models to examine whether the residuals are normally distributed:
 
-```{r qq_histograms, message=FALSE, warning=FALSE, echo = TRUE}
+```{r}
 
 mod_1_hist <- model_1 %>% 
   ggplot(aes(x = model_1_residuals)) + 
