@@ -380,7 +380,7 @@ df_race %>%
 
 The Google Human mobility data includes information on the amount of time spent at various public locations compared to Google's baseline data. The values are recorded as percentage changes with possible values ranging from -100 to 100. A look at the summary statistics of the values fail to show any significant errors in values. Finally, there are no missing data points here. 
 
-```{r summary stats age}
+```{r summary stats social distancing}
 df_dist %>%
   select(where(is.numeric)) %>%
   summary()
@@ -562,50 +562,147 @@ According to Model 3, states that have adopted mandatory mask use would expect t
 
 ## CLM Assumptions & Limitations
 
-1) Independent & Identically Distributed Random Variables
+In theory, our EDA process should have helped us choose the most optimal variables (and subsequent transformations) to use in our models. Nevertheless, we must assess how good our models are at explaining the causal relationship between the dependent variable (case rate per 100,000), and our primary independent variable of interest (State implementation of a mask mandate) or whether they require further modification and optimization. As such we will consider whether they meet the 5 key assumptions required for the classic linear model (CLM). Moreover, we can also utilize CLM assessment techniques to demonstrate how our iterative model building process has optimized our causal model.   
 
-Our data set is inherently guilty of being geographically clustered as it only focuses on samples (in this case, states) within the United States. While each of these states have the authority on whether or not to enact a mandated face mask policy, they all share a common federal government and leader in the form of the President. Consequently, our research question is specifically framed to only focus on the effect of mandatory face mask policies on the COVID-19 case rate within the United States. 
+### 1) Independent & Identically Distributed Random Variables
 
-2) Linear Conditional Expectation
+As it is aggregated by State, our data may not be independent and identically distributed:
 
-To assess linear conditional expectation, we need to examine the residuals for our independent variables in each model.
+**a. Clustering Effect**
 
-```{r message=FALSE, echo = TRUE}
+States in close proximity to each other may have similar population characteristics. There may also be frequent movements of populations between neighboring States. Moreover, these States may have similar population demographics (ethnicities, ages) or geographical characteristics (e.g. climate, see Omitted Variable Bias section) which lead to a clustering effect in terms of case rates.
+
+**b. Strategic Effect**
+
+Similar to clustering, socioeconomic and behavioral characteristics of populations may effect public health policies and case rates. Moreover, adjacent States or States with similar population characteristics (and behaviors) may be encouraged to adopt similar public health policies such as implementing shelter-in-place orders, quarantines, mask use mandates and other regulations. 
+
+
+### 2) Linear Conditional Expectation
+
+The linear regression model assumes a straight-line relationship between the predictors and the response. 
+
+**Residuals vs. Fitted**
+
+```{r fitted_v_residuals, message=FALSE, echo = TRUE}
 
 model_1_residuals = resid(model_1)
 model_2_residuals = resid(model_2)
 model_3_residuals = resid(model_3)
 
+model_1_predicteds = predict(model_1)
+model_2_predicteds = predict(model_2)
+model_3_predicteds = predict(model_3)
+
+plot_1_predicts <- model_1 %>%
+  ggplot(aes(model_1_predicteds, model_1_residuals)) + 
+  geom_point() + 
+  stat_smooth(color="red") +
+  labs(
+    title = "Model 1: Residuals vs. Fitted",
+    x = "Fitted Values",
+    y = "Residual Values"
+  )
+
+plot_2_predicts <- model_2 %>%
+  ggplot(aes(model_2_predicteds, model_2_residuals)) + 
+  geom_point() + 
+  stat_smooth(color="blue") +
+  labs(
+    title = "Model 2: Residuals vs. Fitted",
+    x = "Fitted Values",
+    y = "Residual Values"
+  )
+
+plot_3_predicts <- model_3 %>%
+  ggplot(aes(model_3_predicteds, model_3_residuals)) + 
+  geom_point() + 
+  stat_smooth(color="green") +
+  labs(
+    title = "Model 3: Residuals vs. Fitted",
+    x = "Fitted Values",
+    y = "Residual Values"
+  )
+
+plot_1_predicts
+plot_2_predicts
+plot_3_predicts
+```
+
+Looking at the fitted vs. residuals plot for Model 1, we can see that the residuals demonstrate an element of non-linearity (evidenced especially at fitted values > 3500), indicating problems with the model. In model 2, with the addition of several more control variables, we can see that the plot assumes a more linear pattern, with the line much closer to 0. There appears to be very little difference (almost indiscernable to the naked eye) between the fitted vs. residual line between Model 2 and 3, indicating that Model 3, despite the addition of several more variables, does little to improve the overall model. 
+
+Moreover, comparing Model 1 to Model 2, the residuals seem to be more evenly distributed (i.e. randomly about the) about the line in the latter model, with fewer outliers. There is almost no change in residual distribution about the line between Model 2 and 3. We will discuss homoskedasticity in a subsequent section.
+
+Altogether we can see that compared to Model 1, Model 2 does a better job at meeting the fundamental assumption that the error term has a conditional mean of 0. Moreover, Model 3 does not seem to contribute further to meeting this assumption, despite the addition of further variables. 
+
+**Residuals vs. Explanatory Variable**
+
+As our main explanatory variable (mask use) is a binary variable rather than a continous one, we cannot easily demonstrate the effect of the changing model upon the predictor values, however we can see whether the distribution of residuals is constant across the binary categories:
+
+```{r residuals_v_explanatory, message=FALSE, echo=TRUE}
 plot_1_residuals <- model_1 %>%  
-  ggplot(aes(x = case_rate, y = model_1_residuals)) + 
-  geom_point() + stat_smooth(se = TRUE)
+  ggplot(aes(x = mask_use, y = model_1_residuals)) + 
+  geom_boxplot() +
+  labs(
+    title = "Model 1: Residuals vs. Predictor (Mask Use Policy)",
+    x = "Mask Mandate In Place",
+    y = "Residuals"
+  )
 
-plot_2_residuals <- model_2 %>%  
-  ggplot(aes(x = case_rate, y = model_2_residuals)) + 
-  geom_point() + stat_smooth(se = TRUE)
+plot_2_residuals <- model_2 %>%
+  ggplot(aes(x = mask_use, y = model_2_residuals)) + 
+  geom_boxplot() +
+  labs(
+    title = "Model 2: Residuals vs. Predictor (Mask Use Policy)",
+    x = "Mask Mandate In Place",
+    y = "Residuals"
+  )
 
-plot_3_residuals <- model_3 %>%  
-  ggplot(aes(x = case_rate, y = model_3_residuals)) + 
-  geom_point() + stat_smooth(se = TRUE)
+plot_3_residuals <- model_3 %>%
+  ggplot(aes(x = mask_use, y = model_3_residuals)) + 
+  geom_boxplot() +
+  labs(
+    title = "Model 3: Residuals vs. Predictor (Mask Use Policy)",
+    x = "Mask Mandate In Place",
+    y = "Residuals"
+  )
 
 plot_1_residuals
 plot_2_residuals
 plot_3_residuals
-
 ```
 
-We are able to observe a clear linear pattern when plotting the predicted values against the corresponding residuals for each model; in fact, the mean becomes increasingly centered around 0 with each iteration. While we cannot assertively state that our model(s) meet the linear conditional expectation assumption, we can fail to reject the null hypothesis that there is an inherent issue in making that assumption.
+As we can see, in Model 1 there is a large difference in residual spread between the groups. Moreover, the expected value for residuals within the False category deviate substantially from 0, compared to the True category. Moreover, the spread of residual errors seems to be much narrower (and with more outliers) compared to residuals from the True category. By adding more control variables to the model, we can see that the expected value of the residuals for the True category is approximately 0, however the expected value for the False residuals has now become negative. Nevertheless, the spread between the two groups is now more similar. There is almost no discernable change in the expected value of the residuals between Model 2 and Model 3.
+
+?delete
+```{r}
+plot_1_residuals <- model_1 %>%  
+  ggplot(aes(x = test_rate, y = model_1_residuals)) + 
+  geom_point() + 
+  stat_smooth(se = TRUE)
+
+plot_2_residuals <- model_2 %>%  
+  ggplot(aes(x = test_rate, y = model_2_residuals)) + 
+  geom_point() + 
+  stat_smooth(se = TRUE)
+
+plot_3_residuals <- model_3 %>%  
+  ggplot(aes(x = test_rate, y = model_3_residuals)) + 
+  geom_point() + 
+  stat_smooth(se = TRUE)
+
+plot_1_residuals
+plot_2_residuals
+plot_3_residuals
+```
+
 
 3) No Perfect Collinearity
 
-As far as perfect collinearity goes, we can safely assume that our models meet this assumption of the CLM given that our models all run without dropping any variables. However, when trying to evaluate near-perfect collinearity, it becomes a slightly more involved exercise.
+**Dropped Coefficients**
 
-Thinking about the variables we added between Model 2 and Model 3 (shelter_days and bus_close_days), one might point out that there is a high level of correlation between those variables and our primary independent variable of a mandated face mask policy. However, it is important to note that we are purposefully adding those variables to the mix in order to demonstrate the robustness of Model 2.
+We can assess for perfect collinearity by looking to see if there are any dropped coefficients in any of the 3 models:
 
-If we re-examine the Model 3 Summary, we note that even with the addition of the shelter_days and bus_close_days variables, we still maintain a relatively constant coefficient for mask_use variable (-961 in Model 2 versus -941 in Model 3). Coefficients of our other variables also remain relatively unchanged. Additionally, it is clear that collinearity is introduced in Model 3 because the standard errors for several of the variables increases as compared with Model 2.
-
-```{r model_3 reexamination, warning = FALSE}
-model_3 <- lm(case_rate ~ mask_use + test_rate + age_below_25 + log(black_pop) + mob_TS + shelter_days + bus_close_days, data = df)
+```{r colinearity_assumptions, echo=TRUE, warning = FALSE}
 std_errors = list(
   sqrt(diag(vcovHC(model_1))),
   sqrt(diag(vcovHC(model_2))),
@@ -614,44 +711,176 @@ std_errors = list(
 stargazer(model_1, model_2, model_3, se = std_errors, type = "text", title = "Model 3 Summary")
 ```
 
-4) Heteroscedastic Conditional Variance
+As we can see, none of the variables have been dropped from any of the models, indicating that there is no perfect colinearity between any of the independent variables. 
 
-To test for heteroscedasticity, or non-constant variance, we must perform the Breusch-Pagan test on each of our models. Our null hypothesis is that there is no evidence for heteroscedastic variance.
+**Variance Inflation Factor**
 
-Running the test for Model 1, we observe a high p-value of 0.7. While we cannot assertively state that there is no heteroscedastic variance, we can safely assume that we fail to reject the null hypothesis.
+We can quantify the degree of colinearity between the independent variables by conducting a variance inflation factor (VIF) test. This is the quotient of the variance of a model with multiple terms by by the variance of a model with only one term. It is given by the formula: 
+
+$$
+\mathrm{VIF} = \frac{1}{1-R_i^2}
+$$
+
+Where $R^2_i$ is the coefficient of determnation of of a regression equation with $X_i$ on the left hand side, and all other predictor variables on the right hand side. Subsequently, it will produce a VIF index value for the coefficient estimator of the particular variable we are analyzing ($\mathrm{VIF}(\hat{\beta_i})$). According to several sources, $\mathrm{VIF}(\hat{\beta_i})>10$ (some also say 5) is considered indicative of multicolinearity.
+
+```{r}
+car::vif(model_1)
+```
+
+The VIF values for both variables in Model 1 are <2, indicating no high degree of colinearity between the two independent variables.
+
+```{r}
+car::vif(model_2)
+```
+
+The VIF values for all variables in Model 2 are <2, indicating no high degree of multicolinearity between the 5 independent variables.
+
+```{r}
+car::vif(model_3)
+```
+
+The VIF values for all variables in Model 3 are <2, indicating no high degree of multicolinearity between the 7 independent variables.
+
+From the two tests above, we can safely say our models meet the assumption of having no substantial amount of colinearity or multicolinearity between the independent variables.
+
+## 4) Homoscedastic Errors
+
+There are two methods we can employ to test for homocedasticity of the error terms:
+
+**Scale-Location Plots**
+
+This is a method to visually assess for homoscedasticity of the error terms. 
+
+```{r scale_location, echo=TRUE, warning=FALSE}
+plot_1_sl <- model_1 %>%  
+  ggplot(aes(x = model_1_predicteds, y = sqrt(abs(model_1_residuals/sd(model_1_residuals))))) + 
+  geom_point() + 
+  stat_smooth(color="red", se=FALSE) +
+  labs(
+    title = "Scale-Location Plot: Model 1",
+    x = "Fitted Values",
+    y = "√(|Standardized Residuals)"
+  )
+
+plot_2_sl <- model_2 %>%  
+  ggplot(aes(x = model_2_predicteds, y = sqrt(abs(model_2_residuals/sd(model_2_residuals))))) + 
+  geom_point() + 
+  stat_smooth(color="blue", se=FALSE) +
+  labs(
+    title = "Scale-Location Plot: Model 2",
+    x = "Fitted Values",
+    y = "√(|Standardized Residuals)"
+  )
+
+plot_3_sl <- model_3 %>%  
+  ggplot(aes(x = model_3_predicteds, y = sqrt(abs(model_3_residuals/sd(model_3_residuals))))) + 
+  geom_point() + 
+  stat_smooth(color="green", se=FALSE) +
+  labs(
+    title = "Scale-Location Plot: Model 3",
+    x = "Fitted Values",
+    y = "√(|Standardized Residuals)"
+  )
+
+plot_1_sl
+plot_2_sl
+plot_3_sl
+```
+
+In Model 1, it seems like there are a greater concentration of points below the line, which demonstrates evident curvature at the lower and upper X-scale, with a greater upward slope at Fitted values > 3500. It is difficult to test for heteroscedasticity in this plot. In Model 2, the errors seem much more evenly distributed above and below the line, which is also straighter than that in Model 1. However it seems that the error magnitude is increasing as X increases. There is almost no discernable change in any of the aforementioned parameters between model 2 and 3, indicating that the extra added variables do nothing to increase the efficacy of our model. 
+
+As it is difficult to discern homoscedasticity in the scale-location plot for model 1, and it appears errors are increasing in magnitude in both model 2 and 3, we can also perform a quantitative assessment for non-constant variance in the form of the Breusch-Pagan test. Our null hypothesis is that there is no evidence for heteroscedastic variance.
+
+**Breusch-Pagan Test**
+
+Running the test for Model 1, we observe a high p-value of 0.7. While we cannot assertively state that there is no heteroscedastic variance, we can safely assume that we fail to reject the null hypothesis:
 
 ```{r message=FALSE, echo = TRUE}
 lmtest::bptest(model_1)
 ```
 
-Continuing on to running the Breusch-Pagan test for Model 2, we now observe a very low p-value of ~0.008, and reject the null hypothesis. Although this indicates that our data is heteroscedastic, it is important to note that we are utilizing Robust Standard Errors versus Classical Standard Errors in not just Model 2, but all of our models and their associated tests.
+For Model 2, we now observe a very low p-value of ~0.008, and reject the null hypothesis. Although this indicates that our data is heteroscedastic, it is important to note that we are utilizing Robust Standard Errors versus Classical Standard Errors in not just Model 2, but all of our models and their associated tests:
 
 ```{r message=FALSE, echo = TRUE}
 lmtest::bptest(model_2)
 ```
 
-Finally in Model 3, running the BP test again yields a low p-value of ~0.02, and we reject the null hypothesis. This once again indicates that our data is heteroscedastic, but as mentioned previously we solve for this by utilizing Robust Standard Errors in our model and associated tests.
+Finally in Model 3, running the BP test yields a low p-value of ~0.02, and we reject the null hypothesis. This again indicates that our data is heteroscedastic, but as mentioned previously we solve for this by utilizing Robust Standard Errors in our model and associated tests:
 
 ```{r message=FALSE, echo = TRUE}
 lmtest::bptest(model_3)
 ```
 
-5) Normally Distributed Errors
+### 5) Normally Distributed Errors
 
-The final CLM assumption we must test for is normally distributed errors. In order to do this, we will run quantile-quantile plots for each of our models to examine whether the residuals follow a straight line; if so, we can say that they are normally distributed.
+The final CLM assumption we must test for is normally distributed errors. We can utilize both quantile-quantile (Q-Q) plots and histograms of residuals for each of our models to examine whether the residuals are normally distributed:
 
-```{r message=FALSE, echo = TRUE}
+```{r qq_histograms, message=FALSE, warning=FALSE, echo = TRUE}
 
-plot(model_1, which = c(2,2))
-plot(model_2, which = c(2,2))
-plot(model_3, which = c(2,2))
+mod_1_hist <- model_1 %>% 
+  ggplot(aes(x = model_1_residuals)) + 
+  geom_histogram(fill="red", bins=50) +
+  labs(
+    title = "Model 1: Distribution of Residuals",
+    x = "Residual Values",
+    y = "Count"
+  )
+  
+mod_1_qq <- model_1 %>% 
+  ggplot(aes(sample = model_1_residuals)) + 
+  stat_qq() + stat_qq_line(color="red") +
+  labs(
+    title = "Model 1: Normal-QQ Plot",
+    x = "Theoretical Quantiles",
+    y = "Standardized Residuals"
+  )
 
+mod_2_hist <- model_2 %>% 
+  ggplot(aes(x = model_2_residuals)) + 
+  geom_histogram(fill="blue", bins=50) +
+  labs(
+    title = "Model 2: Distribution of Residuals",
+    x = "Residual Values",
+    y = "Count"
+  )
+  
+mod_2_qq <- model_2 %>% 
+  ggplot(aes(sample = model_2_residuals)) + 
+  stat_qq() + stat_qq_line(color="blue") +
+  labs(
+    title = "Model 2: Normal-QQ Plot",
+    x = "Theoretical Quantiles",
+    y = "Standardized Residuals"
+  )
+
+mod_3_hist <- model_3 %>% 
+  ggplot(aes(x = model_3_residuals)) + 
+  geom_histogram(fill="green", bins=50) +
+  labs(
+    title = "Model 3: Distribution of Residuals",
+    x = "Residual Values",
+    y = "Count"
+  )
+
+mod_3_qq <- model_3 %>% 
+  ggplot(aes(sample = model_3_residuals)) + 
+  stat_qq() + stat_qq_line(color="green") +
+  labs(
+    title = "Model 3: Normal-QQ Plot",
+    x = "Theoretical Quantiles",
+    y = "Standardized Residuals"
+  )
 ```
 
-As seen above, we can see that the residuals for all 3 models do follow a straight line pattern within their respective Normal Q-Q plots. Accordingly, we can safely assume that our models satisfy this assumption. 
+```{r}
+mod_1_hist/mod_1_qq
+mod_2_hist/mod_2_qq
+mod_3_hist/mod_3_qq
+```
 
-
-# Omitted Variables Discussion
+As we can see, in model 1 even though the distribution of residuals represented by the histogram seems somewhat evenly distributed about 0, with a slight negative skew, the associated Q-Q plot shows that the points fall very far from the line at the theoretical quantile values -1 and 1, indicating a heavy-tailed distribution of residuals. In comparison, it is difficult to make the claim that the residuals are normally distributed in Models 2 and 3 (which are almost identical), with an extreme negative outlier obvious in both. This is reflected in the Q-Q plot for these models, however with the caveat that the points are generally more well behaved and congruent with the Q-Q line versus that of Model 1. Nevertheless, Models 2 and 3 also suffer from a heavy-tailed residual distribution, albeit on that is uni-directional rather than the bi-directional heavy tails of Model 1's residual distribution. 
+ 
+## Omitted Variables Discussion
 
 ```{r}
 quar <- read.csv("ovb.csv")
@@ -661,9 +890,9 @@ quar <- data.frame(quar)
 df2 <- merge(df, quar, by="state")
 ```
 
-As we are attempting to study an exceedingly-complex real life phenomenon, naturally there will be an element of bias in our models. We selected what we believed to be the most appropriate variables influencing the COVID-19 case rate per 100,000, which included a range of logistical, social, ethnic and population-based metrics (as provided in the dataset). Nevertheless, even though the dataset was extensive, it is impossible to completely predict every factor that might influence both our dependent variable and independent variables - this is reflected in the model performance metrics (for example $R^2$, which would be 1 if our model perfectly represented the real world phenomenon we were trying to model) and error parameter. 
+As we are attempting to study an exceedingly-complex real life phenomenon, naturally there will be an element of bias in our models. We selected what we believed to be the most appropriate explanatory variables influencing the COVID-19 case rate per 100,000, which included a range of logistical, social, ethnic and population-based metrics (as provided in the dataset). Nevertheless, even though the dataset was extensive, it is impossible to completely predict every factor that might influence both our dependent variable and independent variables - this is reflected in the model performance metrics (for example $R^2$, which would be 1 if our model perfectly represented the real world phenomenon we were trying to model) and error parameter. 
 
-As such, we have selected 5 hypothetical omitted variables that we predict might exert a hidden effect upon the regression model, specifically upon the dependent variable (i.e. cases per 100,000) and the primary independent variable of interest (i.e. whether the state implemented a mask use policy). These are all envisaged real-world phenomena that we do not have any data on, however for 3 of these, we can use proxy variables as provided in the dataset and external sources that we can utilize in bias estimation. We can predict the potential relationship between the omitted variables and the dependent and independent variables, and the direction of bias for all of our suggested omitted variables. We cannot estimate the size of the bias for the omitted variables that we do not have a proxy or direct information regarding, however.
+As such, we have considered 5 potential omitted variables that we predict might exert a hidden effect upon the regression model, specifically upon the dependent variable (i.e. cases per 100,000) and the primary independent variable of interest (i.e. whether the state implemented a mask use policy). These are all envisaged real-world phenomena. For 2 of these, we can use proxy variables as provided in the dataset or data from external sources for bias estimation. We can predict the potential relationship between the omitted variables and the dependent and independent variables, and the direction of bias for all of our suggested omitted variables. We cannot estimate the size of the bias for the omitted variables that we do not have a proxy or direct information for, however.
 
 For our 'best' model (model 2), the coefficient for Mandatory Mask Use is ~-919, with a S.E. of of ~227 and a p-value of < 0.01. This can be interpreted to mean that *ceteris paribus*, a state that enforces mandatory mask use laws reduces the overall case rate by ~919/100,000 or ~1%. We will subsequently discuss how we predict the omitted variables could influence this coefficient and what it might mean.
 
@@ -687,9 +916,9 @@ $$
 
 Where $\hat{Y}$ is the dependent variable (i.e. positive cases per 100,000 population), $\hat{\beta_0}$ is the y-intercept term, $\hat{\beta_1}$ the unbiased coefficient of the independent variable of interest (i.e. whether the state implemented a mask use policy, $X_1$), $\hat{\beta_2}$ the unbiased coefficient of the omitted variable $X_2$, and $\epsilon_2$ the modified associated error term.
 
-Subsequently, $\tilde{\beta_1} - \hat{\beta_1}$ is used to calculate the actual omitted variable bias.
+Subsequently, $\tilde{\beta_1} - \hat{\beta_1}$ is used to calculate the magnitude and direction of the actual omitted variable bias.
 
-## Skepticism Towards COVID-19 Control Policies
+### Skepticism Towards COVID-19 Control Policies
 
 There is a documented segment of the population that are skeptical towards the existence of COVID-19$^1$. They may view subsequent governmental efforts to control its spread as a conspiracy. In the provided dataset, we do not have any data pertaining to the proportion of people in any State that are COVID-19 skeptics, however potential surrogate measures could relate to whether the State had elected Republican politicians (see $1, 4$). Subsequently, we predict that the more skeptics there are in a State, the less likely they will be to observe preventative public-health measures and will thus contract COVID-19 at a higher rate. Therefore, we predict a positive relationship between the State population of COVID-19 skeptics and the case rate per 100,000. 
 
@@ -700,7 +929,7 @@ As the relationship between the omitted variable and the dependent variable is p
 
 ![](images/covid_skeptics.png){width=300px}
 
-## State Healthcare Infrastructure
+### State Healthcare Infrastructure
 
 The standard of healthcare infrastructure may vary across States. For example, there may be fewer healthcare facilities in largely rural States, compared to those that are more urban. As a result, populations in States with poorer healthcare infrastructure may not have easy access to COVID testing or diagnosis. A possible proxy variable that we do have access to could be looking at a State's population density, however specific transformations would likely have to be performed to somehow translate it to a State's healthcare infrastrucutre (e.g. doctors per X unit of population). If we could measure and quantify this State healthcare infrastructure metric, we predict that it would be postively related to COVID-19 case rate per 100,000 population. That is, the higher the theoretical "State healthcare infrastructure" score, the higher number of COVID-19 tests performed, translating to a higher positive case rate. 
 
@@ -710,7 +939,7 @@ As the relationship between the omitted variable and the independent variable is
 
 ![](images/healthcare_infrastructure.png){width=300px}
 
-## Travel Restrictions
+### Travel Restrictions
 
 Certain states have imposed travel restrictions to prevent the spread of COVID-19$^2$. These may vary from recommending visitors to quarantine, to requiring them to provide proof of a negative COVID-19 test before being granted entry. The State-mandated quarantine variables are the closest potential proxies, and we can potentially use these to calculate the effect of the omitted variable bias for this variable. We predict that these measures to prevent the spread of COVID-19 are negatively related to the case rate per 100,000 population. That is, States that have enforced some kind of travel restriction have fewer overall cases. 
 
@@ -738,7 +967,7 @@ $$
 \end{align}
 $$
 
-## Average Temperature 
+### Average Temperature 
 
 It is thought that the dry air occuring in cold weather enhances the spread of the flu virus$^3$. Certain States in the U.S. have cooler average climates than others, and may also experience colder winters. We therefore predict that there is a negative relationship between a State's average temperature and the positive case rate per 100,000 population. As acquiring annual State temperature data is relatively easy, we have compiled this information from external sources, to be utilized to prove our predictions.
 
@@ -765,7 +994,7 @@ $$
 \end{align}
 $$
 
-## Percentage of Republican Voters
+### Percentage of Republican Voters
 
 There is evidence to show that States that are majority Republican are experiencing the majority of new COVID-19 infections. Though the reasons for this are likely complex, it has been demonstrated, for example, that Republican voters are less likely to observe social distancing regulations, relative to Democratic voters$^4$. We have information provided on the State's ruling officials, which we can take as a proxy for the majority political inclination. We predict that there is a positive relationship between proportion of Republican-voting population in a State and the positive case rate per 100,000 people. 
 
