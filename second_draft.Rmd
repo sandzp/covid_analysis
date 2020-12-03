@@ -118,16 +118,38 @@ Accordingly, as a team we decided to leverage the provided dataset to validate t
 
 **Does the implementation of a mandatory face mask policy for all individuals aid in reducing the case rate of COVID-19 in the United States?**
 
+![](images/intro_causal_diagram.png)
+
 We hypothesize that face masks do indeed have a measurable & causal impact on containing the spread of COVID-19, even when taking into account socioeconomic, demographic, alternate government policies, and other potential competing factors. Our measurement goal is to assess the statistical significance and practical significance of mandatory face mask usage policies on reducing the COVID-19 case rate in the United States.  Over the course of this report, we will include other covariates in our regression modeling which we deem to be important in reducing the COVID-19 case rate in an effort to isolate the portion of variability actually explained by the implementation of a mandatory face mask policy for all individuals in the United States. These other covariates, while important, will help absorb some of the “noise” not associated specifically with the implementation of a face mask policy.
 
 
 ## Data
 
-The data used in the model is taken from the provided covid_19 dataset. This dataset comes from a very large collection of sources and collected using various methods. The dataset is up-to-date as of October 30th, 2020. Additionally, the covid_19 dataset uses the Google Human mobility metrics. Google Human mobility data is compiled daily by Google and includes information on the amount of time spent at various public locations compared to Google's baseline data. Some of this data is included in the dataset and assumed that it was taken the same day the rest of the dataset was compiled on October 30th, 2020. Below are the adjustments made to variables that were either created or supplemented.
+The COVID-19 dataset is an aggregation of data from a variety of sources and updated at various dates. The final dataset and with its most recent update is shown in the table below.
+
+| Data                               | Source                           | Last Updated |
+|------------------------------------|----------------------------------|--------------|
+| Covid-19                           | Center for Disease Control (CDC) | 10/30/2020   |
+| COVID-19 Cases by Race/Ethnicity   | Kaiser Family Foundation (KFF)   | 10/25/2020   |
+| COVID-19 Deaths by Race/Ethnicity  | KFF                              | 10/25/2020   |
+| Policies                           | Raifman J, et. al.               | 10/26/2020   |
+| State Characteristics              | CDC, KFF, and Raifman            | N/A          |
+| Demographics                       | KFF                              | 2018         |
+| Human Mobilty                      | Google                           | 10/23/2020   |
+
+The Google Human mobility data is compiled daily by Google and includes information on the amount of time spent at various public locations compared to Google's baseline data. Below are the adjustments made to variables that were either created or supplemented. 
 
 There are a total of 6 data types in the dataset: character, numeric, integer, factor, dates, and logical. Any variable with “date” in the name is read in as a date. Logical variables include mask_use, mask_legal, and maskbus_use. Variables read in as factors include gov_party, and tests_positive. The only character variable is the state name. Finally, all other variables are read in as either numeric or an integer. All numeric and integer values are real and nonnegative.
 
-*talk about data sources, talk about inclusion of data points - citation from Amar https://www.nbcnews.com/health/health-news/here-are-stay-home-orders-across-country-n1168736*
+Some of the data was missing from the initial table and was manually populated on 10/30/2020 using this (website)[https://www.nbcnews.com/health/health-news/here-are-stay-home-orders-across-country-n1168736]. The table below shows the data populated manually (empty cells were left as is):
+
+| State       | Beg_shelter_date | end_shelter_date |
+|-------------|------------------|------------------|
+| California  |                  | 10/30/2020       |
+| Connecticut | 3/23/2020        |                  |
+| New Mexico  |                  | 10/30/2020       |
+| Oklahoma    | 3/30/2020        |                  |
+| Texas       | 4/2/2020         |                  |
 
 ### Variable Operationalization
 
@@ -155,7 +177,6 @@ The number of days each state closed non-essential businesses. Similar to the da
 
 Observations that were marked as "< 0.01" were rounded down to 0 so that they could be treated as numeric values.
 
-
 ## Model 1
 
 ### Objective
@@ -169,7 +190,7 @@ df_mod1 <- df %>%
 
 ### Exploratory Data Analysis
 
-The summary table of the numeric variables show that there are no obvious errors to the variables used in the initial model. Additionally, there are no missing values. *include description of summary statistics - skew, outliers* 
+The summary table of the numeric variables show that there are no obvious errors to the variables used in the initial model. Minimums and maximums of case_rate and test_rate are all within the range of possibilities. The case_rate is never greater than test_rate, and the similarity between mean and median means there is not a heavy skew left or right. The heatmap after shows that there are no missing values either.
 
 ```{r summary stats model 1, fig.height = 3, fig.width = 4}
 df_mod1 %>%
@@ -181,7 +202,15 @@ vis_miss(df_mod1)
 
 #### Case Rate
 
-Unsure what univariate analysis we would do. 
+The case_rate, our main dependent variable, has a minimum of 344, maximum of 4489, median of 2633, and mean of 2749. From the histogram below, we show the density plot as both a histogram and continuous plot. The density curve has a large standard deviation that is in part due to the limited amount of samples. Our sample set only contains 51 datapoints. With additional datapoints, the true curve may look different.
+
+```{r}
+df %>%
+  select(case_rate) %>%
+  ggplot(aes(x = case_rate)) +
+  geom_histogram(aes(y = ..density..), bins = 51) +
+  geom_density()
+```
 
 #### Case Rate vs. Mandatory Mask Policy
 
@@ -298,7 +327,7 @@ df_age <- df %>%
 The summary table of the numeric variables show that there are no obvious errors to the new age variables. Additionally, there are no missing datapoints.
 
 ```{r summary stats age}
-df_age %>%
+df_age[,-2] %>%
   select(where(is.numeric)) %>%
   summary()
 
@@ -312,22 +341,20 @@ df_age %>%
 ggpairs(df_age[,-1])
 ```
 
-The age group below 25 has the highest correlation with case_rate. By combining the two age groups, the high correlation is maintained and we are able to better capture the affect of age on the case_rate, while avoiding the effects of collinearity between the two age groups if they were both added to the model.
+The age groups at the most extremes, below 25 and above 55, have the highest correlation with case rate. We explore the effects of combining the age groups, 0-18 and 19-25 in one group, and 55-64 and 65+ in the other. From the models below, we see that the younger age group maintains the high correlation that was seen in the pairs plot above. Furthermore, by combining the younger age groups, the high correlation is maintained and we are able to better capture the affect of age on the case_rate, while avoiding the effects of collinearity between the two age groups if they were both added to the model.
 
 ```{r message=FALSE}
 df_age$age_below_25 = df$age_0_18 + df$age_19_25
 df$age_below_25 = df$age_0_18 + df$age_19_25
 
-df_age %>%
-  select(case_rate, age_below_25) %>%
-  ggplot(aes(y = case_rate, x = age_below_25)) + 
-  geom_point() +
-  geom_smooth(method = "lm", level = 0) + 
-  labs(
-    title = "Case Rate vs Percent Age Below 25",
-    x = "Percent Age Below 25",
-    y = "Case Rate per 100k"
-  )
+df_age$age_above_55 = df$age_0_18 + df$age_19_25
+df$age_above_55 = df$age_55_64 + df$age_65
+
+below_25 <- lm(case_rate ~ age_below_25, data = df)
+above_55 <- lm(case_rate ~ age_above_55, data = df)
+
+summary(below_25)$r.squared
+summary(above_55)$r.squared
 ```
 
 #### Case Rate vs. Socio-Economic Demographics
@@ -356,7 +383,7 @@ Next we look towards the socio-economic factors. From the pairs plot below, we s
 ggpairs(df_socio[,-1])
 ```
 
-We explore the bivariate relationship between case_rate and black_pop below. The untransformed relationship shows a tapering off in case_rate as the % black increases.
+We explore the bivariate relationship between case_rate and black_pop below. The untransformed relationship shows a tapering off in case_rate as the percentage of black population increases.
 
 ```{r message=FALSE, fig.height = 5, fig.width = 5}
 df_race %>%
@@ -502,17 +529,15 @@ df_mod3[,c(-1,-2)] %>%
   theme(axis.text.x = element_text(angle = 90))
 ```
 
-*to be completed*
-
-Explanation for the inclusion of bus_close_days and shelter_days but not mask_legal. I think the pairs function is better than ggpairs here. Looks a bit cleaner and easier to interpret.
-
-We are stress testing the model for robustness. Looked at other policies that are as a result of COVID-19. We chose the two variables with the highest correlation to see how it would affect our model.
+From the pairs plot below, we see a -0.241 correlation between the number of days that businesses were closed and the case rate. We also see that the number of days that states mandated shelter-in-place is even more strongly correlated at -0.327. For model 3, our goal is not to necessarily improve the model, rather we are looking to stress test it by adding other correlating variables to see the change in impact to our main independent variable, mask_use. 
 
 ```{r warning=FALSE, fig.height = 6, message=FALSE}
 ggpairs(df_mod3[,-1], upper = list(combo = "points"))
 ```
 
 ### Casual Diagram for Model 3
+
+The addition of the two days sheltered in place, and days businesses closed leads to our final causal diagram below.
 
 ![](images/final_causal_diagram.png)
 
