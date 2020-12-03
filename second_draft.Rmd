@@ -116,15 +116,18 @@ Despite all of these recommendations, the use of face masks has become politiciz
 
 Accordingly, as a team we decided to leverage the provided dataset to validate the guidance from the CDC and answer the following question:
 
-**Does the implementation of a mandatory face mask policy aid in reducing the case rate of COVID-19 in the United States?**
+**Does the implementation of a mandatory face mask policy for all individuals aid in reducing the case rate of COVID-19 in the United States?**
 
-Our measurement goal is to assess the statistical significance and practical significance of mandatory face mask usage policies on reducing the COVID-19 case rate in the United States. We hypothesize that face masks do indeed have a measurable & causal impact on containing the spread of COVID-19, even when taking into account socioeconomic, demographic, alternate government policies, and other potential competing factors. Over the course of this report, we will include other covariates in our regression modeling which we deem to be important in reducing the COVID-19 case rate in an effort to isolate the portion of variability actually explained by the implementation of a mandatory face mask policy for all individuals in the United States. These other covariates, while important, will help absorb some of the “noise” not associated specifically with the implementation of a face mask policy.
+We hypothesize that face masks do indeed have a measurable & causal impact on containing the spread of COVID-19, even when taking into account socioeconomic, demographic, alternate government policies, and other potential competing factors. Our measurement goal is to assess the statistical significance and practical significance of mandatory face mask usage policies on reducing the COVID-19 case rate in the United States.  Over the course of this report, we will include other covariates in our regression modeling which we deem to be important in reducing the COVID-19 case rate in an effort to isolate the portion of variability actually explained by the implementation of a mandatory face mask policy for all individuals in the United States. These other covariates, while important, will help absorb some of the “noise” not associated specifically with the implementation of a face mask policy.
+
 
 ## Data
 
-The data used in the model is taken from the provided covid_19 dataset. The provided dataset is up-to-date as of October 30th, 2020. Additionally, the covid_19 dataset uses the Google Human mobility metrics. Google Human mobility data is compiled daily by Google and includes information on the amount of time spent at various public locations compared to Google's baseline data. Some of this data is included in the dataset and assumed that it was taken the same day the rest of the dataset was compiled on October 30th, 2020. Below are the adjustments made to variables that were either created or supplemented.
+The data used in the model is taken from the provided covid_19 dataset. This dataset comes from a very large collection of sources and collected using various methods. The dataset is up-to-date as of October 30th, 2020. Additionally, the covid_19 dataset uses the Google Human mobility metrics. Google Human mobility data is compiled daily by Google and includes information on the amount of time spent at various public locations compared to Google's baseline data. Some of this data is included in the dataset and assumed that it was taken the same day the rest of the dataset was compiled on October 30th, 2020. Below are the adjustments made to variables that were either created or supplemented.
 
 There are a total of 6 data types in the dataset: character, numeric, integer, factor, dates, and logical. Any variable with “date” in the name is read in as a date. Logical variables include mask_use, mask_legal, and maskbus_use. Variables read in as factors include gov_party, and tests_positive. The only character variable is the state name. Finally, all other variables are read in as either numeric or an integer. All numeric and integer values are real and nonnegative.
+
+*talk about data sources, talk about inclusion of data points - citation from Amar https://www.nbcnews.com/health/health-news/here-are-stay-home-orders-across-country-n1168736*
 
 ### Variable Operationalization
 
@@ -136,6 +139,10 @@ This binary/logical variable was created by assigning a 1 if the state had a mas
 
 This column was created by combining the 0-18 and 18-25 age groups. No other adjustments were made.
 
+**Percent Age Above 55**
+
+This column was created by combining the 55-64 and 65+ age groups. No other adjustments were made.
+
 **Days in Shelter-in-Place**
 
 The number of days each state was under the Shelter-in-Place mandate. This data was missing some data and supplemented by researching and populating the missing data. The column was creating by subtracting the end and start dates.
@@ -146,13 +153,14 @@ The number of days each state closed non-essential businesses. Similar to the da
 
 **Percentage of Population: Black**
 
-Observations that were marked as "< 0.01" were rounded up to 0.01 for a log transformation to be applied.
+Observations that were marked as "< 0.01" were rounded down to 0 so that they could be treated as numeric values.
+
 
 ## Model 1
 
 ### Objective
 
-Model 1 is our simplest model. It aims to measure the strength of the relationship between the presence of mandatory mask use policy and the covid case rate in US states. It has no other covariate, with the exception of test rate, which we included as a way to control for the impact that different test availabilities might have on the reported case rate by state.
+Model 1 is our simplest model. It aims to measure the strength of the relationship between the presence of mandatory mask use policy for all individuals and the covid case rate per 100k in US states. It has no other covariate, with the exception of test rate, which we included as a way to control for the impact that different test availabilities might have on the reported case rate by state. 
 
 ```{r initialize model 1}
 df_mod1 <- df %>%
@@ -161,7 +169,7 @@ df_mod1 <- df %>%
 
 ### Exploratory Data Analysis
 
-The summary table of the numeric variables show that there are no obvious errors to the variables used in the initial model. Additionally, there are no missing values
+The summary table of the numeric variables show that there are no obvious errors to the variables used in the initial model. Additionally, there are no missing values. *include description of summary statistics - skew, outliers* 
 
 ```{r summary stats model 1, fig.height = 3, fig.width = 4}
 df_mod1 %>%
@@ -376,7 +384,7 @@ df_race %>%
   )
 ```
 
-#### Case Rate vs. Actual Social Distancing
+#### Case Rate vs. Social Distancing Adherence
 
 The Google Human mobility data includes information on the amount of time spent at various public locations compared to Google's baseline data. The values are recorded as percentage changes with possible values ranging from -100 to 100. A look at the summary statistics of the values fail to show any significant errors in values. Finally, there are no missing data points here. 
 
@@ -449,7 +457,7 @@ anova(model_1, model_2, test = "F")
 
 ### Coefficient significance (t-test)  
 
-Under a significance level of 0.05, we can accept all the alternative hypotheses: $H_{a1}: \beta_1 \ne 0$, $H_{a2}: \beta_2 \ne 0$, $H_{a3}: \beta_3 \ne 0$, $H_{a4}: \beta_4 \ne 0$, and \beta_5 \ne 0$. It means all of our 5 covariates do help explain part of the variability observed in the **case_rate**.  
+Under a significance level of 0.05, we can accept all the alternative hypotheses: $H_{a1}: \beta_1 \ne 0$, $H_{a2}: \beta_2 \ne 0$, $H_{a3}: \beta_3 \ne 0$, $H_{a4}: \beta_4 \ne 0$, and $\beta_5 \ne 0$. It means all of our 5 covariates do help explain part of the variability observed in the **case_rate**.  
 
 Our estimate for $\beta_1$ (the coefficient of our variable of interest) is $\tilde \beta_1 = -919.3$, with a standard error of 227.0 and a p-value of 0.0002. It continues to be statistically significant, and with an estimated value that did not change a lot from **Model 1** (-990.5) to **Model 2** (-919.2).
 
@@ -475,7 +483,7 @@ Model 3 should in this sense be read as an *acid test* to further validate the r
 
 ```{r model 3 variable initialization}
 df_mod3 <- df %>%
-  select(state, case_rate, bus_close_days, shelter_days, mask_legal)
+  select(state, case_rate, bus_close_days, shelter_days, mask_legal, maskbus_use)
 ```
 
 #### Case Rate vs. Other Covid Related Policies
@@ -498,12 +506,10 @@ df_mod3[,c(-1,-2)] %>%
 
 Explanation for the inclusion of bus_close_days and shelter_days but not mask_legal. I think the pairs function is better than ggpairs here. Looks a bit cleaner and easier to interpret.
 
-```{r warning=FALSE, fig.height = 6, message=FALSE}
-#ggpairs(df_mod3[,-1],
-#         upper = list(combo = "points")
-#        )
+We are stress testing the model for robustness. Looked at other policies that are as a result of COVID-19. We chose the two variables with the highest correlation to see how it would affect our model.
 
-pairs(df_mod3[,-1])
+```{r warning=FALSE, fig.height = 6, message=FALSE}
+ggpairs(df_mod3[,-1], upper = list(combo = "points"))
 ```
 
 ### Casual Diagram for Model 3
@@ -759,7 +765,7 @@ plot_1_sl <- model_1 %>%
   labs(
     title = "Scale-Location Plot: Model 1",
     x = "Fitted Values",
-    y = "√(|Standardized Residuals)"
+    y = "sqrt(|Standardized Residuals)"
   )
 
 plot_2_sl <- model_2 %>%  
@@ -769,7 +775,7 @@ plot_2_sl <- model_2 %>%
   labs(
     title = "Scale-Location Plot: Model 2",
     x = "Fitted Values",
-    y = "√(|Standardized Residuals)"
+    y = "sqrt(|Standardized Residuals)"
   )
 
 plot_3_sl <- model_3 %>%  
@@ -779,7 +785,7 @@ plot_3_sl <- model_3 %>%
   labs(
     title = "Scale-Location Plot: Model 3",
     x = "Fitted Values",
-    y = "√(|Standardized Residuals)"
+    y = "sqrt(|Standardized Residuals)"
   )
 
 plot_1_sl
@@ -873,9 +879,12 @@ mod_3_qq <- model_3 %>%
 ```
 
 ```{r}
-mod_1_hist/mod_1_qq
-mod_2_hist/mod_2_qq
-mod_3_hist/mod_3_qq
+mod_1_hist
+mod_1_qq
+mod_2_hist
+mod_2_qq
+mod_3_hist
+mod_3_qq
 ```
 
 As we can see, in model 1 even though the distribution of residuals represented by the histogram seems somewhat evenly distributed about 0, with a slight negative skew, the associated Q-Q plot shows that the points fall very far from the line at the theoretical quantile values -1 and 1, indicating a heavy-tailed distribution of residuals. In comparison, it is difficult to make the claim that the residuals are normally distributed in Models 2 and 3 (which are almost identical), with an extreme negative outlier obvious in both. This is reflected in the Q-Q plot for these models, however with the caveat that the points are generally more well behaved and congruent with the Q-Q line versus that of Model 1. Nevertheless, Models 2 and 3 also suffer from a heavy-tailed residual distribution, albeit on that is uni-directional rather than the bi-directional heavy tails of Model 1's residual distribution. 
@@ -899,9 +908,9 @@ For our 'best' model (model 2), the coefficient for Mandatory Mask Use is ~-919,
 For the 3 omitted variables that we either have proxy (Travel restrictions, % Republicans) or direct data (Average annual temperature) for, we will calculate the omitted variable bias using the base model usng the following system:
 
 $$
-\begin{align}
+\begin{aligned}
 \tilde{Y} = \tilde{\beta_0} + \tilde{\beta_1}X_1 + \epsilon_1\\
-\end{align}
+\end{aligned}
 $$
 
 This specifies the biased estimation. Where $\tilde{Y}$ is the dependent variable (i.e. positive cases per 100,000 population), $\tilde{\beta_0}$ is the y-intercept term, $\tilde{\beta_1}$ the coefficient of the independent variable of interest (i.e. whether the state implemented a mask use policy, $X_1$) and $\epsilon_1$ the associated error term.
@@ -909,9 +918,9 @@ This specifies the biased estimation. Where $\tilde{Y}$ is the dependent variabl
 By including the omitted variable, the theoretically 'true' or unbiased estimator becomes:
 
 $$
-\begin{align}
+\begin{aligned}
 \hat{Y} = \hat{\beta_0} + \hat{\beta_1}X_1 + \hat{\beta_2}X_2 + \epsilon_2\\
-\end{align}
+\end{aligned}
 $$
 
 Where $\hat{Y}$ is the dependent variable (i.e. positive cases per 100,000 population), $\hat{\beta_0}$ is the y-intercept term, $\hat{\beta_1}$ the unbiased coefficient of the independent variable of interest (i.e. whether the state implemented a mask use policy, $X_1$), $\hat{\beta_2}$ the unbiased coefficient of the omitted variable $X_2$, and $\epsilon_2$ the modified associated error term.
@@ -961,10 +970,10 @@ stargazer(base_model, model_quar, type = "text", title = "Omitted Variable Bias 
 As we can see here, the overall effect of including quarantine information upon our variables of interest is concordant with predictions, and we observe an increase (i.e. moving towards 0) in the overall coefficient value for our independent variable of interest (mask use policies) meaning that lesser effect is attributed to it in a more 'true' system. We can further calculate and prove that our predictions of negative omitted variable bias were correct by subtracting the value of the coefficient of interest in the unbiased estmation (i.e. $\hat{\beta_1}$) from that of the 'false' model (i.e. $\tilde{\beta_1}$):
 
 $$
-\begin{align}
+\begin{aligned}
 \tilde{\beta_1} - \hat{\beta_1} = -830.0-(-808.5)\\
 \approx -21.5
-\end{align}
+\end{aligned}
 $$
 
 ### Average Temperature 
@@ -988,10 +997,10 @@ stargazer(base_model, model_climate, type = "text", title = "Omitted Variable Bi
 As we can see here, the overall effect of including average annual State temperature information upon our variables is concordant with predictions, and we observe an increase (i.e. moving towards 0) in the overall coefficient value for our independent variable of interest (mask use policies) meaning that lesser effect is attributed to it in a more 'true' system. We can further calculate and prove that our predictions of negative omitted variable bias were correct by subtracting the value of the coefficient of interest in the unbiased estmation (i.e. $\hat{\beta_1}$) from that of the 'false' model (i.e. $\tilde{\beta_1}$): 
 
 $$
-\begin{align}
+\begin{aligned}
 \tilde{\beta_1} - \hat{\beta_1} \approx -830.0-(-775.0)\\
 \approx -55.0
-\end{align}
+\end{aligned}
 $$
 
 ### Percentage of Republican Voters
@@ -1015,10 +1024,10 @@ stargazer(base_model, model_party, type = "text", title = "Omitted Variable Bias
 As we can see here, the overall effect upon the variables of interest caused by including information about a State's political inclination is concordant with predictions. We observe an increase (i.e. moving towards 0) in the overall coefficient value for our independent variable of interest (mask use policies) meaning that lesser effect is attributed to it in a more 'true' system. We can further calculate and prove that our predictions of negative omitted variable bias were correct by subtracting the value of the coefficient of interest in the unbiased estmation (i.e. $\hat{\beta_1}$) from that of the 'false' model (i.e. $\tilde{\beta_1}$):
 
 $$
-\begin{align}
+\begin{aligned}
 \tilde{\beta_1} - \hat{\beta_1} \approx -830.0-(-688.0)\\
 \approx -142.0
-\end{align}
+\end{aligned}
 $$
 
 # Conclusion
