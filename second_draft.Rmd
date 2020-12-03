@@ -190,64 +190,18 @@ df_mod1 <- df %>%
 
 ### Exploratory Data Analysis
 
-<<<<<<< HEAD:second_draft_v2.Rmd
-First, we assessed the data provided for the variables of interest. This specifically pertained to any spurious values, and whether there was any missing data. We discuss the distribution of the data in dedicated sections below. 
-=======
 The summary table of the numeric variables show that there are no obvious errors to the variables used in the initial model. Minimums and maximums of case_rate and test_rate are all within the range of possibilities. The case_rate is never greater than test_rate, and the similarity between mean and median means there is not a heavy skew left or right. The heatmap after shows that there are no missing values either.
->>>>>>> 5390c0b264bdda68f4a09d8f1edb3e4d6f7c46fe:second_draft.Rmd
+
+```{r summary stats model 1, fig.height = 3, fig.width = 4}
+df_mod1 %>%
+  select(where(is.numeric)) %>%
+  summary()
+
+vis_miss(df_mod1)
+```
 
 #### Case Rate
 
-For the main outcome variable, we can see that there are no missing values in the columns of interest:
-
-```{r fig.height = 3, fig.width = 3}
-vis_miss(data.frame(df$case_rate))
-```
-
-We can then analyze the summary statistics for the case rate from which we can see there are no negative or observably spurious values: 
-
-<<<<<<< HEAD:second_draft_v2.Rmd
-```{r summary stats model 1}
-summary(df_mod1$case_rate)
-```
-
-Together with the summary statistics presented in the previous section, we can further isolate the case rate variable and visualize its distribution:
-
-```{r warning=FALSE, fig.height = 4, message=FALSE}
-hist_case_rate <- df %>%
-  ggplot(aes(x = case_rate)) +
-  geom_histogram(bins = 50) +
-  labs(title = "Histogram of Case Rate per 100,000 Population",
-       y = "Count",
-       x = "Case Rate per 100,000 Population")
-
-hist_case_rate
-```
-
-From the above histogram, we can see that the case rate is approximately normally distributed, though there are some States that are obvious outliers, with very high and very low case rates per 100,000.
-
-Next, we can visually assess the case rate across the 50 States by plotting a bar graph:
-
-```{r warning=FALSE, fig.height = 6, message=FALSE}
-hist_state_rate <- df %>%
-  ggplot(aes(x = state, y = case_rate)) +
-  geom_bar(stat="identity") +
-  labs(title = "Case Rate Across 50 States",
-       y = "Case Rate/100,000 Population",
-       x = "State",
-       color = "Legend") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
-  geom_hline(aes(yintercept=mean(df$case_rate), color='Mean')) +
-  geom_hline(aes(yintercept=quantile(df$case_rate, 0.25), color='1st Quartile')) +
-  geom_hline(aes(yintercept=quantile(df$case_rate, 0.75), color='3rd Quartile'))
-
-hist_state_rate
-```
-
-We can see that there are a substantial number of States with case rates below the mean (2749), and a few below the 1st (2040) and 3rd (3516) quartiles.
-
-Next, we look at the correlation between case rate and our causal variables of interest. 
-=======
 The case_rate, our main dependent variable, has a minimum of 344, maximum of 4489, median of 2633, and mean of 2749. From the histogram below, we show the density plot as both a histogram and continuous plot. The density curve has a large standard deviation that is in part due to the limited amount of samples. Our sample set only contains 51 datapoints. With additional datapoints, the true curve may look different.
 
 ```{r}
@@ -257,29 +211,12 @@ df %>%
   geom_histogram(aes(y = ..density..), bins = 51) +
   geom_density()
 ```
->>>>>>> 5390c0b264bdda68f4a09d8f1edb3e4d6f7c46fe:second_draft.Rmd
 
 #### Case Rate vs. Mandatory Mask Policy
 
-Before we conduct a comparison between the dependent and main independent variable, we must ensure that there are no spurious or missing data in the mandatory mask policy category. As we can see from below, there is no missing data for this variable:
+Next, we look at the correlation between the variables of interest. Based on our preliminary causal model, a mask-use policy should lead to a decrease in the number of covid cases. The boxplot below suggests that this initial assumption at least holds to some degree. 
 
-```{r fig.height = 3, fig.width = 3}
-vis_miss(data.frame(df$mask_use))
-```
-
-As the mask use policy variable is binary, we only need to ensure that there are 51 observations (51 as the District of Columbia is included):
-
-```{r}
-summary(df_mod1$mask_use)
-```
-
-We can also see that only 1/3 of all the States surveyed did not implement a mask use policy.
-
-Based on our hypothesis, implementation of a Statewide mask-use policy should lead to a decrease in the number of covid cases by preventing their spread. From the box plot comparison below we can visually discern an apparent positive correlation between mask use policy categories and case rates. This broadly falls in line with our hypothesis, as we can see that the mean case rate in the 'True' (i.e. enforced mask policy) category (2473/100,000) is substantially lower than that of the 'False' (i.e. no enforced mask policy) category (3303/100,000):
-
-```{r warning=FALSE, message=FALSE, fig.height = 4, fig.width = 5}
-
-
+```{r warning=FALSE, message=FALSE, fig.height = 3, fig.width = 5}
 df_mod1 %>%
   ggplot(aes(y = case_rate, x = mask_use)) +
   geom_boxplot() +
@@ -287,42 +224,12 @@ df_mod1 %>%
     title = "Mandatory Mask Use vs Case Rate by State",
     x = "Mandatory Mask Use",
     y = "Case Rate per 100K"
-  ) 
-
+  )
 ```
 
 #### Case Rate vs. Test Rate
 
-First, we assess for any potential missing data for the test rate variable. As we can see from below, there is none:
-
-```{r fig.height = 3, fig.width = 3}
-vis_miss(data.frame(df$test_rate))
-```
-
-Next, we ensure there are no spurious values by calculating summary statistics: 
-
-```{r}
-summary(df_mod1$test_rate)
-```
-
-Together with the summary statistics presented previously, we can visualize the distribution of test rates using a histogram:
-
-```{r warning=FALSE, fig.height = 4, message=FALSE}
-hist_test_rate <- df %>%
-  ggplot(aes(x = test_rate)) +
-  geom_histogram(bins = 50) +
-  labs(title = "Histogram of Test Rate per 100,000 Population",
-       y = "Count",
-       x = "Test Rate per 100,000 Population")
-
-hist_test_rate
-```
-
-From the above histogram, we can see that there is a definite positive skew of the data, meaning that the "worst performing" States had test rates were approximately 1/3 of the "top performing" States in terms of tests administered per 100,000 of population. This is an interesting observation, and warrants a comparison between the test rates and case rates to see if there is any potential relationship, which we will next perform.
-
-An important control variable in our causal models is the test rate per 100,000 of the population:  We hypothesize that the more tests are performed, the higher the overall case rate. This is a contentious issue due to its potential for becoming politicized and utilized as a means to explain a lack of governmental control of COVID-19. Nevertheless, some suggest that the assumption that more tests results in a higher number of cases is not as simple as a simple correlation. As such we believe that including the test rate per 100,000 is an important control variable in our model.    
-
-**https://www.politico.eu/article/does-more-coronavirus-testing-mean-more-cases/**
+Similarly, the scatter plot below reinforces the idea that the more tests that are performed, the higher the number of cases.
 
 ```{r}
 df_mod1 %>%
@@ -336,27 +243,21 @@ df_mod1 %>%
   )
 ```
 
-The above diagram visualizes the relationship between test and case rates per 100,000 population (below). In line with the more simple hypothesis, there is a slight positive relationship (as evidenced by the slope of the line) between the test rate and case rates. Due to the prior reasoning and demonstrable positive relationship between the variables, we choose to include it in our model. 
-
 ### Casual Diagram for Model 1
 
-We found that our initial assumptions have been validated by a cursory analysis and are confident that the causal diagram below holds true. Colored in blue at the center is the main dependent variable, case rate per 100k. In green, pointing to the case rate (signifying a causal effect on the dependent variable) is the main independent variable, a mask use policy. In yellow is the test rate per 100k as the first control variable. Finally, in red, is the error term that contains all other variables.
+We found that our initial assumptions have held up to a baseline analysis and are confident that the initial causal diagram below holds true. Colored in blue at the center is the main dependent variable, case rate per 100k. In green, pointing to the case rate (signifying a causal effect on the dependent variable) is the main independent variable, a mask use policy. In yellow is the test rate per 100k as the first control variable. Finally, in red, is the error term that contains all other variables.
 
 ![](images/model1_causal_diagram.png)
 
 ### Model specification
 
-Our first regression model has **Covid-19 Case Rate per 100,000 habitants** as the outcome variable and two covariates: our variable of interest (**Mandatory Mask Use**) and **Test Rate per 100,000 habitants**.  
+Our first regression model has **Covid-19 Case Rate per 100,000 habitants** as our outcome variable and two covariates: our variable of interest (**Mandatory Mask Use**) and **Test Rate per 100,000 habitants**.  
 
-**Test Rate** has been included because there is an evident positive relationship between test rates and case rates. Subsequently, it should be included as a control variable in our subsequent models in order to prevent potential misattribution of effects to other included variables. 
-  
-Model 1 is subsequently defined as: 
+We have included **Test Rate** because we've seen before there is variability in the test rates among US states which could potentially affect the integrity of our outcome variable - e.g. states presenting lower case rate not because actual infection rate by covid is lower, but because test availability is lower. In order to mitigate such shortcomings we decided to have **Test Rate** as a covariate present since the very first version of our regression model.  
 
-$$
-\begin{align}
-\mathrm{case\ rate\ per\ 100,000\ pop.} = \beta_0 + \beta_1(\mathrm{mandatory\ mask\ use\ policy}) + \beta_2(\mathrm{test\ rate\ per\ 100,000\ pop.})
-\end{align}
-$$
+Our Model 1 has the format: 
+
+case_rate = $\beta_0$ + $\beta_1$ * mandatory_mask_use + $\beta_2$ * test_rate  
 
 ### Model summary
 
@@ -369,46 +270,43 @@ stargazer(model_1, se = std_errors, type = "text", title = "Model 1 Summary")
 
 ### Overall model significance (F-test)
 
-This compares the null hypothesis, where $H_0: \beta_1 = \beta_2 = 0$, against an alternative hypothesis where $H_a: \beta_1 \ne 0$ or $\beta_2 \ne 0$ at a significance level of 0.05: 
+Under a significance level of 0.05, we can reject the null hypothesis ($H_0: \beta_1 = \beta_2 = 0$) in favor of our fuller model ($H_a: \beta_1 \ne 0$ or $\beta_2 \ne 0$), which now includes the covariates **mask_use** and **test_rate**. The F-Statistic = 7.416, and the p-value < 0.01. Our Model 1 has an adjusted R-squared of 0.204.  
 
 ```{r model_1 F-test}
 model_0 <- lm(case_rate ~ 1, data = df)
 anova(model_0, model_1, test = "F")
 ```
 
-The F-Statistic = 7.416, and the p-value < 0.01 with an adjusted R-squared of 0.204. From the F-test, we can reject the null hypothesis ($H_0$) in favor of a more complete model ($H_1$) which now includes the covariates **mask_use** and **test_rate**. This is the model we will henceforth build upon.
+### Coefficient significance (t-test)  
 
-### Coefficient significance (t-test)
+Under a significance level of 0.05, we can accept the alternative hypotheses $H_{a}: \beta_1 \ne 0$, which means **mandatory_mask_use** do explain part of the variability observed in the **case_rate**.  
 
-In order to assess the performance of the model, we can look at the other model coefficients:
+On the other hand, for **test_rate** we failed to reject the null hypothesis that $H_{0}: \beta_2 = 0$. For this model specification, **test_rate** is not contributing as expected to absorb part of the variability observed in **case_rate**.
+
+Our estimate for $\beta_1$ (the coefficient of our variable of interest) is $\tilde \beta_1 = -990.5$, with a standard error of 324.8 and a p-value of 0.004.  
 
 ```{r model_1 coefficient test}
 coeftest(model_1, vcovHC)
 ```
 
-Under a significance level of 0.05, we can accept the alternative hypotheses $H_{a}: \beta_1 \ne 0$, which means **mandatory_mask_use** explains at least a part of the variability observed in the **case_rate**.  
-
-On the other hand, for **test_rate** we failed to reject the null hypothesis that $H_{0}: \beta_2 = 0$. It seems that **test_rate** is not absorbing a significant part of the variability observed in the outcome, **case_rate**.
-
-Our estimate for $\beta_1$ (the coefficient of our variable of interest) is $\tilde \beta_1 \approx-990.5$, with a standard error of ~324.8 and a p-value of 0.004.  
-
 ### Practical significance  
 
-According to Model 1, enforcement of mask use policies would be expected to reduce the case rate by ~990.5 cases/100,000 or by ~1%, *ceteris paribus*. Given that the median COVID-19 case rate among US states is 2,633 per 100,000 population, the coefficient estimate has practical significance, with an effect size corresponding to a reduction of 37.6% of the median case rate among states.  
+According to Model 1, states that have adopted mandatory mask use would expect to have -990.5 covid cases per 100,000 habitants. Given that the median of covid case rate among US states is of 2,633 per 100,000 habitants, the coefficient estimate has practical significance, with an effect size corresponding to a reduction of 37.6% of the median of the covid case rate among states.  
 
 ## Model 2
 
 ### Objective
 
-Model 2 is designed to be our optimal model, which strikes a balance between accuracy and parsimony. It is intended to reflect our best understanding of the relationships among key variables. It includes the same covariates used in Model 1, in addition to new covariates related to structural demographics and behavioral differences among US States that might partly correlate with the variability observed in the case rate. 
+Model 2 is our best model. It aims to strike a balance between accuracy and parsimony and reflect our best understanding of the relationships among key variables.  
 
-It is difficult to make *a priori* assumptions regarding the variables we will utilize for Model 2. We hope to select one causal variable from each of the three broader categories that we believe align with our hypotheses regarding the factors influencing COVID-19 case rates. The broad categories include:
+It includes the same covariates used in model 1 and new covariates related to structural demographics and behavioral differences among US states that might correlate with part of the variability observed in the case rate. 
 
+We don't know a priori exactly which variables we are going to use. What we know is that we want to select one variable to represent each one of these three broader categories that align with our initial hypotheses:
 - Age demographics
-- Socioeconomic demographics
+- Socio-economic demographics
 - Actual social distancing
 
-Model selection will be based upon our EDA. For each one of these categories, we will look for variables that correlate more strongly with case rate, but without a high degree of collinearity with the other variables already included in the model.
+Model selection will be based on EDA. For each one of these categories, we will look for variables that correlate better with case rate, and that do not have high collinearity with the other variables we already have in our model.
 
 ```{r initialize model 2}
 df_race <- df %>%
@@ -422,90 +320,33 @@ df_dist <- df %>%
 
 df_age <- df %>%
   select(state, case_rate, age_0_18, age_19_25, age_26_34, age_35_54, age_55_64, age_65)
-
-df_socio$life_expectancy <- df_socio$life_expectancy/10
 ```
 
-### Exploratory Data Anaysis
+#### Case Rate vs. Age Demographics
 
-**Age Demographics**
+The summary table of the numeric variables show that there are no obvious errors to the new age variables. Additionally, there are no missing datapoints.
 
-<<<<<<< HEAD:second_draft_v2.Rmd
-In order to select the most appropriate age groups (i.e. % of population of a particular age group in a State) to include in our model, we must conduct a more detailed exploratory analysis of the individual independent variables, their relationship with the dependent variable and their fellow categories.
-
-First we ensure that there is no missing data in any of the age groups. The below figure confirms that there is no missing data:
-=======
 ```{r summary stats age}
 df_age[,-2] %>%
   select(where(is.numeric)) %>%
   summary()
->>>>>>> 5390c0b264bdda68f4a09d8f1edb3e4d6f7c46fe:second_draft.Rmd
 
-```{r fig.height = 4, fig.width = 4}
 df_age %>% 
   vis_miss() + 
   theme(axis.text.x = element_text(angle = 90))
 ```
 
-Next we ensure there is no spurious data contained in any of the age categories. From below, we can see that all the categories look to be well behaved in terms of the data they contain:
-
-```{r summary stats age}
-df_age %>%
-  select(where(is.numeric)) %>%
-  summary()
-```
-
-Now that we have ensured the integrity of our data, we examine how each particular age group is related to the dependent variable and to each of the other age variables:
 
 ```{r warning=FALSE, fig.height = 6, message=FALSE}
 ggpairs(df_age[,-1])
 ```
 
-<<<<<<< HEAD:second_draft_v2.Rmd
-From the above scatterplot matrix we can see that the age groups that have highest correlation with our dependent variable (case rate) are below 25 (r = ~0.6) and 0-18 (r = ~0.5). These might both be valuable causal factors in terms of case rate and could be combined to enhance the model, while preventing the colinearity occuring if the two variables were added separately (as they also strongly correlate with each other, r = ~0.5). We can subsequently look at our newly transformed '<25' category in more detail:
-=======
 The age groups at the most extremes, below 25 and above 55, have the highest correlation with case rate. We explore the effects of combining the age groups, 0-18 and 19-25 in one group, and 55-64 and 65+ in the other. From the models below, we see that the younger age group maintains the high correlation that was seen in the pairs plot above. Furthermore, by combining the younger age groups, the high correlation is maintained and we are able to better capture the affect of age on the case_rate, while avoiding the effects of collinearity between the two age groups if they were both added to the model.
->>>>>>> 5390c0b264bdda68f4a09d8f1edb3e4d6f7c46fe:second_draft.Rmd
-
-First we can plot a bar graph to see what percentge of the population <25 exists in each State:
-
-```{r warning=FALSE, fig.height = 6, message=FALSE}
-df_age$age_below_25 = df$age_0_18 + df$age_19_25
-
-df$age_below_25 = df$age_0_18 + df$age_19_25
-
-<<<<<<< HEAD:second_draft_v2.Rmd
-hist_state_age <- df %>%
-  ggplot(aes(x = state, y = age_below_25)) +
-  geom_bar(stat="identity") +
-  labs(title = "% of Population Under 25 Years Old Across States",
-       y = "%",
-       x = "State",
-       color = "Legend") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
-  geom_hline(aes(yintercept=mean(df$age_below_25), color='Mean')) +
-  geom_hline(aes(yintercept=quantile(df$age_below_25, 0.25), color='1st Quartile')) +
-  geom_hline(aes(yintercept=quantile(df$age_below_25, 0.75), color='3rd Quartile'))
-
-hist_state_age
-```
-
-As we can see from the above, all of the States have similar proportions of their population < 25, with the interquartile distance being relatively small. 
-
-We can subsequently move on to the comparison between our new 'age <25' category and our dependent variable:
 
 ```{r message=FALSE}
-df_age %>%
-  select(case_rate, age_below_25) %>%
-  ggplot(aes(y = case_rate, x = age_below_25)) + 
-  geom_point() +
-  geom_smooth(method = "lm", level = 0) + 
-  labs(
-    title = "Case Rate vs Percent Age Below 25",
-    x = "Percent Age Below 25",
-    y = "Case Rate per 100k"
-  )
-=======
+df_age$age_below_25 = df$age_0_18 + df$age_19_25
+df$age_below_25 = df$age_0_18 + df$age_19_25
+
 df_age$age_above_55 = df$age_0_18 + df$age_19_25
 df$age_above_55 = df$age_55_64 + df$age_65
 
@@ -514,92 +355,37 @@ above_55 <- lm(case_rate ~ age_above_55, data = df)
 
 summary(below_25)$r.squared
 summary(above_55)$r.squared
->>>>>>> 5390c0b264bdda68f4a09d8f1edb3e4d6f7c46fe:second_draft.Rmd
 ```
-
-As we can see from the above, there is a definite positive relationship between the percent of people in the <25 age category and the case rate per 100. As such, it is unlikely that further transformation to this variable is required, and we can utilize it as a representation of an age demographic factor in our causal model moving forward. 
 
 #### Case Rate vs. Socio-Economic Demographics
 
-It is well known and documented that COVID-19 has affected different ethnic groups differently, with figures demonstrating that case rates and death rates are higher among certain minority groups. This may be partially attributable to genetic factors. It may also be related to socioeconomic factors, such as poverty, inability to work from home, education, among many other reasons, which are also related to race. 
-
-Again, we begin by confirming the data has been recorded properly and that there are no missing values:
-
-```{r fig.height = 4, fig.width = 4}
-df_race[,c(-1,-2)] %>% 
-  vis_miss() + 
-  theme(axis.text.x = element_text(angle = 90))
-```
-
-Next we ensure there is no spurious data contained in any of the race categories. From below, we can see that all the categories look to be well behaved in terms of the data they contain:
+Next, we look at the influence of race and various socio-economic factors. Again, we begin by ensuring the data has been recorded properly and that there are not many missing values. We see that all the population values make sense and that there are no missing values.
 
 ```{r summary stats race}
 df_race[,c(-1,-2)] %>%
   select(where(is.numeric)) %>%
   summary()
+
+df_race[,c(-1,-2)] %>% 
+  vis_miss() + 
+  theme(axis.text.x = element_text(angle = 90))
 ```
 
-Now that we have ensured the integrity of our data, we examine how the State percentage of particular race category might be related to the dependent variable and to each of the other race groups:
+From the correlation plot below, we see that the percent of those who identify as black has the highest absolute correlation with the number of cases. 
 
 ```{r warning=FALSE, fig.height = 6, message=FALSE}
 ggpairs(df_race[,-1])
 ```
 
-As we can see from the above scatterplot matrix, in general there are generally weak relationships between case rate per 100,000 inhabitants and percentage of the particular racial group per State, in fact the majority show a negative relationship. Nevertheless, we can observe that the strongest absolute value for relationship is positive, and demonstrated by the percentage of black population per State, correlating with case rate with an r = ~0.3. We can visualize the distribution of black people by percentage of State population using a bar graph:
-
-```{r warning=FALSE, fig.height = 6, message=FALSE}
-hist_state_black <- df %>%
-  ggplot(aes(x = state, y = black_pop)) +
-  geom_bar(stat="identity") +
-  labs(title = "% Black Population",
-       y = "%",
-       x = "State",
-       color = "Legend") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
-  geom_hline(aes(yintercept=mean(df$black_pop), color='Mean')) +
-  geom_hline(aes(yintercept=quantile(df$black_pop, 0.25), color='1st Quartile')) +
-  geom_hline(aes(yintercept=quantile(df$black_pop, 0.75), color='3rd Quartile'))
-
-hist_state_black
-```
-
-As we can observe from the above graph, there is a wide variance in the percentage of black population by State. 
-
-As we mentioned in the introduction, race may potentially act as a proxy for socioeconomic factors such as poverty, access to healthcare and education, among others. As such, if there is potential colinearity observed between dedicated socioeconomic categories in the dataset and a particular racial category, including them both as dependent variables might cause problems with the model. As such we have included the percentage of black population per State in our scatterplot analysis of the relationship between various socioeconomic factors and case rate. Our reasoning for this is because we already know from previously that the black ethnicity variable is strongly correlated with case rate. 
-
-First we assess for missing data in the socioeconomic categories we will be assessing:
-
-```{r  fig.height = 4, fig.width = 4}
-df_socio[,c(-1,-2)] %>% 
-  vis_miss() + 
-  theme(axis.text.x = element_text(angle = 90))
-```
-
-Next we do an analysis to ensure there are no spurious values in the data for any of the variables:
-
-```{r summary stats race}
-df_socio[,c(-1,-2)] %>%
-  select(where(is.numeric)) %>%
-  summary()
-```
-
-We have already identified a few missing values in the household income and life expectancy column. Nevertheless, the rest of the variables look to be well behaved and contain summary values concordant with what one would expect for these data types. 
-
-Next we can create the scatterplot matrix for the socioeconomic variables of interest (+ percentage of blacks):
+Next we look towards the socio-economic factors. From the pairs plot below, we see that poverty rate and household income have the highest absolute correlation with case rate per 100k. They are comparable to the correlation of black_pop variable seen above. Additionally, the black_pop variable has high collinearity with household_income, poverty_rate, life_expectancy, and unemployment_rate. Because of this, the percent black population variable may act as a variable that can control for many of these factors, in addition to race factors.
 
 ```{r warning=FALSE, fig.height = 6, message=FALSE}
 ggpairs(df_socio[,-1])
 ```
 
-<<<<<<< HEAD:second_draft_v2.Rmd
-From the pairs plot above, we see that poverty rate and household income have the highest absolute correlation with case rate per 100k. They are comparable to the correlation of percentage of black population variable seen above. Additionally, the black population variable has high collinearity with household income, poverty rate, life expectancy, and unemployment rate. Because of this, the percent black population variable may act as a variable that can control for many of these factors, while also being representative of racial factors. We have previously demonstrated a bar plot for black race by State.
-=======
 We explore the bivariate relationship between case_rate and black_pop below. The untransformed relationship shows a tapering off in case_rate as the percentage of black population increases.
->>>>>>> 5390c0b264bdda68f4a09d8f1edb3e4d6f7c46fe:second_draft.Rmd
 
-We explore the bivariate relationship between case rate and percentage of black population below: 
-
-```{r message=FALSE}
+```{r message=FALSE, fig.height = 5, fig.width = 5}
 df_race %>%
   ggplot(aes(y = case_rate, x = black_pop)) +
   geom_point() +
@@ -611,9 +397,9 @@ df_race %>%
   )
 ```
 
-The untransformed relationship shows a rather weak positive correlation with case rate. Moreover, the points seem to become further spaced as the value of X increases. Disregarding the regression line, we can observe a somewhat non-linear relationship between the data points. As such, this variable could benefit from transformation. Because some of our black population values are equal to 0, a log transformation would not apply. To avoid this, each value is increased by 1 prior to the log transform:
+To account for this taper, we apply a log plus 1 transformation. Because some of our black population values are equal to 0, a log transformation would not apply. To avoid this, each value is increased by 1 prior to the log transform. From the graph below, the transformation better predicts some of the earlier values.
 
-```{r message=FALSE}
+```{r message=FALSE, fig.height = 5, fig.width = 5}
 df_race %>%
   ggplot(aes(y = case_rate, x = log1p(black_pop))) +
   geom_point() +
@@ -625,56 +411,27 @@ df_race %>%
   )
 ```
 
-The graph above demonstrates that a transformation distributes the points more evenly along the X axis, making the potential linear relationship more discernable.
-
 #### Case Rate vs. Social Distancing Adherence
 
-The Google Human mobility data includes information on the amount of time spent at various public locations compared to Google's baseline data. The values are recorded as percentage changes with possible values ranging from -100 to 100. In general this data is a proxy for adherence to social distancing regulations. We would expect to see reductions in mobility upon enforcement of shelter-in-place, work-from-home or quarantine orders. Moreover, we would expect to see drastic reductions at transit stations (e.g. busy commuter hubs). As social distancing measures are designed to reduce the transmission of COVID-19, we would expect there to be a positive relationship between mobility and case rate, i.e. reductions in mobility are linked to lower case rates and vice versa. Nevertheless, there are several different social distancing metrics to choose from, which we deal with in this section.
+The Google Human mobility data includes information on the amount of time spent at various public locations compared to Google's baseline data. The values are recorded as percentage changes with possible values ranging from -100 to 100. A look at the summary statistics of the values fail to show any significant errors in values. Finally, there are no missing data points here. 
 
-We can see that there are no missing data points in this category:
+```{r summary stats social distancing}
+df_dist %>%
+  select(where(is.numeric)) %>%
+  summary()
 
-```{r summary stats social distancing, fig.height = 4, fig.width = 4}
 df_dist[,c(-1,-2)] %>% 
   vis_miss() + 
   theme(axis.text.x = element_text(angle = 90))
 ```
 
-A look at the summary statistics of the values fail to show any significant errors in values:
-
-```{r}
-df_dist %>%
-  select(where(is.numeric)) %>%
-  summary()
-
-```
-
-Below is the pairs plot for the mobility data and case_rate:
+Below is the pairs plot for the mobility data and case_rate. All the mobility data are highly collinear with one another, so for the model, we will select mob_TS as it has the highest correlation with case_rate at 0.237. 
 
 ```{r warning=FALSE, fig.height = 6, message=FALSE}
 ggpairs(df_dist[,-1])
 ```
 
-All the mobility data are highly collinear with one another, so for the model, we will select mob_TS (i.e. change in mobility at transit stations) as it has the highest correlation with case rate, with an r of 0.237. We can visualize the changes in mobility by State to see if there are any interesting trends worth exploring:
-
-```{r warning=FALSE, fig.height = 6, message=FALSE}
-hist_state_mob <- df %>%
-  ggplot(aes(x = state, y = mob_TS)) +
-  geom_bar(stat="identity") +
-  labs(title = "% Change in Mobility",
-       y = "% Change",
-       x = "State",
-       color = "Legend") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
-  geom_hline(aes(yintercept=mean(df$mob_TS), color='Mean')) +
-  geom_hline(aes(yintercept=quantile(df$mob_TS, 0.25), color='1st Quartile')) +
-  geom_hline(aes(yintercept=quantile(df$mob_TS, 0.75), color='3rd Quartile'))
-
-hist_state_mob
-```
-
-As expected, the majority of States have witnessed a decline in mobility at their respective transit centers. In general, the data is congruent with expectations, for example the District of Columbia has seen the largest decrease in transit station mobility at >70%. Interestingly, there are 3 States that have seen increases, with Wyoming seeing a substantial increase in transit station mobility. Nevertheless, these trends are unlikely to affect our further analysis using the variable in our model.
-
-The figure below shows the bivariate relationship between case rate variable and the change in mobility at Transit Stations:
+The figure below shows the bivariate relationship between case_rate and the change in mobility at Transit Stations. There is not a clear and explainable transformation that can be applied here, so the variable will be left as is for the second model.
 
 ```{r warning=FALSE, fig.height = 6, message=FALSE}
 df_dist %>%
@@ -687,31 +444,24 @@ df_dist %>%
     y = "Case Rate per 100K"
   )
 ```
-From the above figure, we can discern a clear positive relationship between the X and Y variables. As the points are approximately evenly distributed within the axes, there is no clear and explainable transformation that can be applied. The variable will be left as is for the second model.
 
 ### Casual Diagram for Model 2
 
-The causal diagram for Model 2 further resembles the diagram from the introduction section. We have now explored the effect of age, race, socioeconomic factors, and mobility as it pertains to policies for mask use and the COVID-19 case rate per 100k. For the age category, percent population <25 had strongest correlation with case rate. The percentage of black people per State served as the strongest proxy to control for socioeconomic and racial characteristics. Using Google's mobility data as a proxy for adherence to social distancing measures, we found that the percentage change in traffic through transit stations had strongest correlation with case rate per 100k.
+From our intial causal diagram in the introduction, we have now explored the effect of age, race, socioeconomic conditions, and mobility as it pertains to policies for mask use and the COVID-19 case rate per 100k. For age, we found highest correlation wih those ages less than 25. For race and socioeconomic factors, we found that the population percentage of blacks served as a variable that could control for both race and socioeconomic factors. Using Google's mobility data, we found that the change traffic through transit stations correlated most with case rate per 100k.
 
 ![](images/model2_causal_diagram.png)
 
 ### Model specification
 
-The second regression model has **Covid-19 Case Rate per 100,000 population** as the outcome variable and 5 covariates: The variable of interest (**Mandatory Mask Use**), and 4 control variables: **Test Rate per 100,000 Population**, **Percentage of Population Below 25 Years Old**, **Log of Percentage of Black Ethnicity in Total Population + 1**, and **Human Mobility Change in Transit Stations**.  
+Our second regression model has **Covid-19 Case Rate per 100,000 habitants** as our outcome variable and five covariates: our variable of interest (**Mandatory Mask Use**), **Test Rate per 100,000 habitants**, **Percentage of Population Below 25 Years Old**, **Log of Percentage of Black Ethnicity in Total Population + 1**, and **Human Mobility Change in Transit Stations**.  
 
-The variable of interest continues to be **Mandatory Mask Use** and the primary measurement goal remains to assess the significance and practical impact of **Mandatory Mask Use** on the **Case Rate**. We predict this model (with more control variables) to be better at capturing the actual significance and practical relevance of the **Mandatory Mask Use** on **Case Rate**.    
+Our variable of interest continues to be **Mandatory Mask Use** and our measurement goal continues to be to assess the significance and practical impact of **Mandatory Mask Use** in the **Case Rate**. We expect the other mediating variables we added to the model will allow us to better capture the actual significance and practical relevance of the **Mandatory Mask Use** in the **Case Rate**.    
 
-Model 2 has the format: 
-$$
-\begin{align}
-\mathrm{case\ rate\ per\ 100,000\ pop.} = \beta_0 + \beta_1(\mathrm{mandatory\ mask\ use\ policy}) +
-\beta_2(\mathrm{test\ rate\ per\ 100,000\ pop.}) + \\ \beta_3(\mathrm{\% \ pop.\ <25}) +  \beta_4(\mathrm{\ln (\%\ black\ pop. + 1)}) + \beta_5(\mathrm{mobility\ \Delta\ transit\ stations})
-\\
+Our Model 2 has the format: 
 
-\end{align}
-$$
+case_rate = $\beta_0$ + $\beta_1$ * mandatory_mask_use + $\beta_2$ * test_rate + $\beta_3$ * age_below_25 + $\beta_4$ * log(black_pop + 1) + $\beta_5$ * mob_TS  
 
-### Model Summary
+### Model summary
 
 ```{r model_2 summary, warning = FALSE}
 model_2 <- lm(case_rate ~ mask_use + test_rate + age_below_25 + log(black_pop + 1) + mob_TS, data = df)
@@ -720,24 +470,21 @@ std_errors = list(
   sqrt(diag(vcovHC(model_2)))
 )
 stargazer(model_1, model_2, se = std_errors, type = "text", title = "Model 2 Summary")
-
-
 ```
 
 
 ### Overall model significance (F-test)
 
-This compares the null hypothesis, where $H_0:$ **Model 1**, against an alternative hypothesis where $H_a:$ **Model 2** at a significance level of 0.05: 
+Under a significance level of 0.05, we can reject the null hypothesis (**Model 1**) in favor of our fuller **Model 2**, which now includes the covariates **mask_use**, **test_rate**, **age_below_25**, **log(black_pop + 1)**, and **mob_TS**. The F-Statistic = 19.733, and the p-value < 0.01. Our Model 2 has an adjusted R-squared of 0.633.
 
 ```{r model_2 F-test}
 anova(model_1, model_2, test = "F")
 ```
 
-From this F-test, we can reject the null hypothesis (**Model 1**) in favor of our optimized **Model 2**, which now includes the covariates **Mask Use**, **Test Rate per 100,000 Population**, **% of Age <25**, **ln(% of Black Population + 1)**, and **% Mobility Change at Mobile Transit Stations**. The F-Statistic is 19.733, and the p-value < 0.01. Model 2 has an adjusted R-squared of 0.633.
 
 ### Coefficient significance (t-test)  
 
-Under a significance level of 0.05, we can accept all the alternative hypotheses: $H_{a1}: \beta_1 \ne 0$, $H_{a2}: \beta_2 \ne 0$, $H_{a3}: \beta_3 \ne 0$, $H_{a4}: \beta_4 \ne 0$, and $\beta_5 \ne 0$. This means all 5 covariates assist in explaining a part of the variability observed in the **case_rate**.  
+Under a significance level of 0.05, we can accept all the alternative hypotheses: $H_{a1}: \beta_1 \ne 0$, $H_{a2}: \beta_2 \ne 0$, $H_{a3}: \beta_3 \ne 0$, $H_{a4}: \beta_4 \ne 0$, and $\beta_5 \ne 0$. It means all of our 5 covariates do help explain part of the variability observed in the **case_rate**.  
 
 Our estimate for $\beta_1$ (the coefficient of our variable of interest) is $\tilde \beta_1 = -919.3$, with a standard error of 227.0 and a p-value of 0.0002. It continues to be statistically significant, and with an estimated value that did not change a lot from **Model 1** (-990.5) to **Model 2** (-919.2).
 
@@ -747,17 +494,19 @@ coeftest(model_2, vcovHC)
 
 ### Practical significance  
 
-According to Model 2, suggests that enforcing a mandatory mask use policy would expect to reduce the COVID-19 positive case rate by ~-919.2 covid cases per 100,000 population. Given that the median case rate across US states is 2,633 per 100,000 population, the coefficient estimate has practical significance, with an effect size corresponding to a reduction of 34.9% of the median State case rate value.
+According to Model 2, states that have adopted mandatory mask use would expect to have -919.2 covid cases per 100,000 habitants. Given that the median of covid case rate among US states is of 2,633 per 100,000 habitants, the coefficient estimate has practical significance, with an effect size corresponding to a reduction of 34.9% of the median of the covid case rate among states.
 
 ## Model 3
 
 ### Objective
 
-Model 3 includes all the previous covariates, and several other covariates, erring on the side of inclusion. A key purpose of this model is to demonstrate the robustness of our coefficient for mandatory mask use. We do not expect our model performance to increase significantly compared to Model 2.  
+Model 3 includes all the previous covariates, and many other covariates, erring on the side of inclusion. A key purpose of this model is to demonstrate the robustness of our coefficient for mandatory mask use.  
 
-Subsequently, we will include other COVID-related measures adopted by States, which might also contribute towards variability of the dependent variable i.e. case rate per 100,000. Moreover, some of these variables may be colinear with our primary independent variable, mandated mask use. This may potentially reduce the overall explanatory performance of our model. We want to verify that even under harsh conditions our coefficient for mandatory mask use remains statistically significant, and with a practical significance close to that of Model 2.
+In this sense, we will include other covid related measures states have adopted that might also contribute to explain case rate variability among US states. We recognize that part of these measures may have some collinearity with mandated mask use, which might reduce the overall explanatory ability of our model.
 
-Model 3 therefore acts as an *acid test* to further validate Model 2 as the most optimized model.
+What we want to verify is if even under more harsh conditions our coefficient for mandatory mask use continues to be statistically significant, and with a practical significance close to what we measured in model 2 specification.
+
+Model 3 should in this sense be read as an *acid test* to further validate the results we obtained with model 2.
 
 ```{r model 3 variable initialization}
 df_mod3 <- df %>%
@@ -766,82 +515,45 @@ df_mod3 <- df %>%
 
 #### Case Rate vs. Other Covid Related Policies
 
-The variables selected in the exploratory phase of Model 3 regard other COVID-19 specific policies. We are using the number of days a business had to close, the duration of shelter-in-place, and whether there was legal enforcement to wear a mask.
+The variables selected in the exploratory phase of model 3 correspond to data revolving around other COVID-19 specific policies. We will be taking a look at the number of days a business had to close, the number of days of shelter-in-place, and whether there was some legal enforcement/pressure to actually use the mask.
 
-From the summary statistics, we can see that the numbers mostly make sense. There are no negative values, and the max number of days in shelter-in-place (since october 30th) would have the shelter-in-place start from March 19th, 2020, a full 8 days after the WHO declared COVID-19 a pandemic.
-
-First we can assess the integrity of our data, and confirm that there are no missing datapoints:
-
-```{r, fig.height = 4, fig.width = 4}
-df_mod3[,c(-1,-2)] %>% 
-  vis_miss() + 
-  theme(axis.text.x = element_text(angle = 90))
-```
-
-<<<<<<< HEAD:second_draft_v2.Rmd
-Next we can ensure that the data are well behaved and do not contain any spurious values:
+From the summary statistics, we can see that the numbers mostly make sense. There are no negative values, and the max number of days in shelter-in-place (since october 30th) would have the SIP start from March 19th, 2020, a full 8 days after the WHO declared COVID-19 a pandemic.
 
 ```{r summary stats - other covid policies}
 df_mod3[,c(-1,-2)] %>%
   select(where(is.numeric)) %>%
   summary()
+
+df_mod3[,c(-1,-2)] %>% 
+  vis_miss() + 
+  theme(axis.text.x = element_text(angle = 90))
 ```
 
-The continues variables corresponding to business close days and days of shelter in place seem to contain data concordant with what we would expect them to contain. Next we can assess the column containing data pertaining to enforcement of mask wear, which we can see contains 51 values, with no missing data:
-
-```{r}
-summary(df_mod3$mask_legal)
-```
-
-Next we can utilize a scatterplot matrix to visualize the relationships between the case rate and other COVID-19 related policies: 
-=======
 From the pairs plot below, we see a -0.241 correlation between the number of days that businesses were closed and the case rate. We also see that the number of days that states mandated shelter-in-place is even more strongly correlated at -0.327. For model 3, our goal is not to necessarily improve the model, rather we are looking to stress test it by adding other correlating variables to see the change in impact to our main independent variable, mask_use. 
->>>>>>> 5390c0b264bdda68f4a09d8f1edb3e4d6f7c46fe:second_draft.Rmd
 
 ```{r warning=FALSE, fig.height = 6, message=FALSE}
 ggpairs(df_mod3[,-1], upper = list(combo = "points"))
 ```
 
-As we cannot calculate a Pearson r correlation score to quantify the relationship between a categorical variable and a continuous variable, instead we can conduct a point biserial test to assess for the relationship between the legal enforcement of mask use and case rate variables:
-
-```{r}
-df_mod3 <- df_mod3 %>% 
-  mutate(binary_legal = as.integer(as.logical(mask_legal)))
-
-cor.test(df_mod3$case_rate, df_mod3$binary_legal)
-```
-
-As we can see from the above scatterplot matrix, variables pertaining to business closure days and shelter days are both negatively correlated with case rate, with Pearson r of ~-0.2 and ~-0.3, respectively. They are also both colinear, with a correlation of r = ~0.4. Due to the fact that these variables are negatively related to case rate (whereas the previous models have exclusively utilized variables that were positively related to case rate), and colinear, adding them separately will be useful to test our model by introducing variables that might interact strongly with the dependent and independent variables. Moreover, as the point biserial estimate of correlation between case rate and legal enforcement of mask wear is ~-0.2, it does not seem to be any more useful than the business closure and shelter in place day variables, and will henceforth be discarded. 
-
-As these two variables are specifically chosen to conflict with our existing variables, we elect not to do any further exploratory data analysis upon them for the sake of brevity. We have already assured that they do not contain any values that might be considered spurious nor do they contain a substantial amount of missing data.
-
 ### Casual Diagram for Model 3
 
-<<<<<<< HEAD:second_draft_v2.Rmd
-The causal diagram for Model 3 is the most "complete" model, and is thus identical to the diagram included in the introduction. We believe that Model 2 is the most optimal in regards to containing variables proxying for the complex demographic, socioeconomic, social, policy and other factors that contribute to case rate per 100,000 of population. The additional variables pertaining to shelter in place days and enforced business closures are both negatively correlated with case rate (as opposed to positively correlated for all other variables) and colinear with each other. This is essentially an *acid test* of Model 2 to ensure that it is robust.
-=======
 The addition of the two days sheltered in place, and days businesses closed leads to our final causal diagram below.
->>>>>>> 5390c0b264bdda68f4a09d8f1edb3e4d6f7c46fe:second_draft.Rmd
 
 ![](images/final_causal_diagram.png)
 
 ### Model specification
 
-Model 3 has **Covid-19 Case Rate per 100,000 Population** as the primary outcome variable and seven covariates: the primary variable of interest (**Mandatory Mask Use**), **Test Rate per 100,000 Population**, **Percentage of Population Below 25 Years Old**, **Log of Percentage of Black Ethnicity in Total Population + 1**, 
+Our third regression model has **Covid-19 Case Rate per 100,000 habitants** as our outcome variable and seven covariates: our variable of interest (**Mandatory Mask Use**), **Test Rate per 100,000 habitants**, **Percentage of Population Below 25 Years Old**, **Log of Percentage of Black Ethnicity in Total Population + 1**, 
 **Human Mobility Change in Transit Stations**, **Number of Days of Shelter in Place**, and **Number of Days of Non-Essential Businesses Closure**.  
 
-**Model 3** will demonstrate robustness of **Model 2** ($\tilde \beta_1$). New variables on **Model 3** represent other common policies US states have adopted to combat the virus spread. They have some collinearity with mask use as would be expected, since typically States enact a set of policies against COVID-19 concurrently.  
+**Model 3** includes the previous covariates, and other new 2 covariates, erring on the side of inclusion. A key purpose of **Model 3** is to demonstrate the robustness of the results of our measurement goal ($\tilde \beta_1$). New variables on **Model 3** represent other common policies US states have adopted to combat the virus spread. They have some collinearity with mask use as it would be expected, since typically a state enact not a single, but a set of policies against covid-19.  
 
-Despite losing some explanatory power due to inclusion of the new variables, the result we would like to highlight is that our coeficient of interest ($\tilde \beta_1$) continues to be both statistically significant, and with an estimated value having practical significance in terms of informing public policies in the combat to the virus.  
+Despite the fact that **Model 3** loses some explanatory power due to the inclusion of the new variables, the result we would like to highlight is that our coeficient of interest ($\tilde \beta_1$) continued to be both statistically significant, and with an estimated value that has practical significance in terms of informing public policies in the combat to the virus.  
 
-Model 3 has the format: 
-$$
-\begin{align}
-\mathrm{case\ rate\ per\ 100,000\ pop.} = \beta_0 + \beta_1(\mathrm{mandatory\ mask\ use\ policy}) +
-\beta_2(\mathrm{test\ rate\ per\ 100,000\ pop.}) + \\ \beta_3(\mathrm{\% \ pop.\ <25}) +  \beta_4(\mathrm{\ln (\%\ black\ pop. + 1)}) + \beta_5(\mathrm{mobility\ \Delta\ transit\ stations})+\\ \beta_6(\mathrm{number\ days\ shelter\ in\ place}) + \beta_7(\mathrm{number\ days\ businesses\ closed})
-\\
-\end{align}
-$$
+Our Model 3 has the format: 
+
+case_rate = $\beta_0$ + $\beta_1$ * mask_use + $\beta_2$ * test_rate + $\beta_3$ * age_below_25 + $\beta_4$ * log(black_pop + 1) + $\beta_5$ * mob_TS + $\beta_6$ * shelter_days + $\beta_7$ * bus_close_days  
+
 ### Model summary
 
 ```{r model_3 summary, warning = FALSE}
@@ -854,29 +566,30 @@ std_errors = list(
 stargazer(model_1, model_2, model_3, se = std_errors, type = "text", title = "Model 3 Summary")
 ```
 
+
 ### Overall model significance (F-test)
+
+Under a significance level of 0.05, we can not reject the null hypothesis (**Model 2**) in favor of our fuller **Model 3**, which now includes the covariates **shelter_days** and **bus_close_days**. Our Residual Std. Error almost remained the same, even with the inclusion of two new variables. This demonstrates that there is collinearity between our new variables and the existing ones. The inclusion of the new variables did not help to increase the explained variability of the outcome variable. The adjusted R-squared of **Model 3** decreased to 0.616.   
+
+On the other hand, as it was asserted above, our focus of interest on **Model 3** is not on the overall roustness of the model (for that sake we have **Model 2**), but more on performing an *acid test* around the statistical and practical significance of our coeficient of interest ($\tilde \beta_1$).
 
 ```{r model_3 F-test}
 anova(model_2, model_3, test = "F")
 ```
 
-At the significance level of 0.05, we cannot reject the null hypothesis ($H_0:$**Model 2**) in favor of our fuller $H_a:$**Model 3**, which now includes the covariates **Number of Days of Shelter in Place** and **Number of Days of Non-Essential Businesses Closure**. Our residual standard error remains almost unchanged, even with inclusion of these new variables. This demonstrates collinearity between the variables and the existing ones from **Model 2**. The inclusion of the new variables did not enhance explained variability of the outcome variable. The adjusted R-squared of **Model 3** decreased to 0.616, which would be expected due to the interactions.   
-
-As such we have demonstrated that **Model 3** serves as a reliable acid test for the robustness of **Model 2** and the coefficient of its primary explanatory variable pertaining to mask use ($\tilde \beta_1$).
-
 ### Coefficient significance (t-test)  
+
+Under a significance level of 0.05, we can accept the alternative hypotheses: $H_{a1}: \beta_1 \ne 0$,  $H_{a3}: \beta_3 \ne 0$, and $H_{a4}: \beta_4 \ne 0$, which means only 3 out of 7 of our covariates do explain part of the variability observed in the **case_rate**.  
+
+Our estimate for $\beta_1$ (the coefficient of our variable of interest) is $\tilde \beta_1 = -913.8$, with a standard error of 271.8 and a p-value of 0.0016. It continues to be statistically significant and with an estimated value that changed little from **Model 2** (-919.3) to **Model 3** (-913.8).
 
 ```{r model_3 coefficient test}
 coeftest(model_3, vcovHC)
 ```
 
-At 0.05 significance, we can accept an alternative hypotheses: $H_{a1}: \beta_1 \ne 0$,  $H_{a3}: \beta_3 \ne 0$, and $H_{a4}: \beta_4 \ne 0$, meaning that only 3 out of 7 of Model 3 covariates have ability to partially explain the variability observed in the case rate per 100,000 population.  
-
-The estimate for $\beta_1$ (the coefficient for our variable of interest) is $\tilde \beta_1 = -913.8$, with a standard error of 271.8 and a p-value of 0.0016. It continues to be statistically significant, with an estimated value that changes little from **Model 2** (-919.3) to **Model 3** (-913.8), indicating that mask use policies are a reliable explanator for differences in case rates between the States.
-
 ### Practical significance  
 
-According to Model 3, states that have adopted mandatory mask use would expect to have 913.8 fewer COVID cases per 100,000 population. Given that the median case rate among US states is 2,633 per 100,000 populations, the coefficient estimate has practical significance, with an effect size corresponding to a reduction of 34.7% of the median rate.
+According to Model 3, states that have adopted mandatory mask use would expect to have -913.8 covid cases per 100,000 habitants. Given that the median of covid case rate among US states is of 2,633 per 100,000 habitants, the coefficient estimate has practical significance, with an effect size corresponding to a reduction of 34.7% of the median of the covid case rate among states.
 
 ## CLM Assumptions & Limitations
 
@@ -893,6 +606,7 @@ States in close proximity to each other may have similar population characterist
 **b. Strategic Effect**
 
 Similar to clustering, socioeconomic and behavioral characteristics of populations may effect public health policies and case rates. Moreover, adjacent States or States with similar population characteristics (and behaviors) may be encouraged to adopt similar public health policies such as implementing shelter-in-place orders, quarantines, mask use mandates and other regulations. 
+
 
 ### 2) Linear Conditional Expectation
 
@@ -1360,4 +1074,5 @@ Wear a mask. Slow the spread.
 3. Lowen, AC., Steel, J., **Roles of Humidity and Temperature in Shaping Influenza Seasonality**, https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4097773/
 
 4. Gollwitzer A. et al., **Partisan differences in physical distancing are linked to health outcomes during the COVID-19 pandemic**, https://www.nature.com/articles/s41562-020-00977-7
+
 
