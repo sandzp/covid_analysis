@@ -197,7 +197,7 @@ First, we assessed the data provided for the variables of interest. This specifi
 For the main outcome variable, we can see that there are no missing values in the columns of interest:
 
 ```{r fig.height = 3, fig.width = 3}
-vis_miss(data.frame(df$case_rate))
+vis_miss(df %>% select(case_rate)) + theme(axis.text.x = element_text(angle = 0, hjust = 0.5))
 ```
 
 We can then analyze the summary statistics for the case rate from which we can see there are no negative or observably spurious values: 
@@ -248,7 +248,7 @@ Next, we look at the correlation between case rate and our causal variables of i
 Before we conduct a comparison between the dependent and main independent variable, we must ensure that there are no spurious or missing data in the mandatory mask policy category. As we can see from below, there is no missing data for this variable:
 
 ```{r fig.height = 3, fig.width = 3}
-vis_miss(data.frame(df$mask_use))
+vis_miss(df %>% select(mask_use)) + theme(axis.text.x = element_text(angle = 0, hjust = 0.5))
 ```
 
 As the mask use policy variable is binary, we only need to ensure that there are 51 observations (51 as the District of Columbia is included):
@@ -280,7 +280,7 @@ df_mod1 %>%
 First, we assess for any potential missing data for the test rate variable. As we can see from below, there is none:
 
 ```{r fig.height = 3, fig.width = 3}
-vis_miss(data.frame(df$test_rate))
+vis_miss(df %>% select(test_rate)) + theme(axis.text.x = element_text(angle = 0, hjust = 0.5))
 ```
 
 Next, we ensure there are no spurious values by calculating summary statistics: 
