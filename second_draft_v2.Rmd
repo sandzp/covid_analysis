@@ -1,7 +1,7 @@
 ---
-title: "Lab 2 Second Draft"
+title: "Lab 2 Final Report"
 author: "Lucas Brossi, Amar Chatterjee, Daniel Chow, Sandip Panesar"
-date: "11/30/2020"
+date: "12/09/2020"
 output:
   pdf_document: default
   html_document:
@@ -122,7 +122,7 @@ Accordingly, as a team we decided to leverage the provided dataset to validate t
 
 **Does the implementation of a mandatory face mask policy for all individuals aid in reducing the case rate of COVID-19 in the United States?**
 
-We hypothesize that face masks do indeed have a measurable & causal impact on containing the spread of COVID-19, even when taking into account socioeconomic, demographic, alternate government policies, and other potential competing factors. Our measurement goal is to assess the statistical significance and practical significance of mandatory face mask usage policies on reducing the COVID-19 case rate in the United States.  Over the course of this report, we will include other covariates in our regression modeling which we deem to be important in reducing the COVID-19 case rate in an effort to isolate the portion of variability actually explained by the implementation of a mandatory face mask policy for all individuals in the United States. These other covariates, while important, will help absorb some of the “noise” not associated specifically with the implementation of a face mask policy.
+We hypothesize that face masks do indeed have a measurable and causal impact on containing the spread of COVID-19, even when taking into account demographic, socioeconomic, alternate government policies, and other potential competing factors. Our measurement goal is to assess the statistical significance and practical significance of mandatory face mask usage policies for all individuals on reducing the COVID-19 case rate in the United States.  Over the course of this report, we will include other covariates in our regression modeling which we deem to be important in reducing the COVID-19 case rate in an effort to isolate the portion of variability actually explained by the implementation of a mandatory face mask policy for all individuals in the United States. These other covariates, while important, will help absorb some of the “noise” not associated specifically with the implementation of a face mask policy.
 
 
 ## Data
@@ -163,10 +163,6 @@ This binary/logical variable was created by assigning a 1 if the state had a mas
 **Percent Age Below 25**
 
 This column was created by combining the 0-18 and 18-25 age groups. No other adjustments were made.
-
-**Percent Age Above 55**
-
-This column was created by combining the 55-64 and 65+ age groups. No other adjustments were made.
 
 **Days in Shelter-in-Place**
 
@@ -261,7 +257,7 @@ As the mask use policy variable is binary, we only need to ensure that there are
 summary(df_mod1$mask_use)
 ```
 
-We can also see that only 1/3 of all the States surveyed did not implement a mask use policy.
+We can also see that 1/3 of all the States surveyed did not had a mask use policy in place by October 30th, 2020.
 
 Based on our hypothesis, implementation of a Statewide mask-use policy should lead to a decrease in the number of COVID cases by preventing their spread. From the box plot comparison below we can visually discern an apparent positive correlation between mask use policy categories and case rates. This broadly falls in line with our hypothesis, as we can see that the mean case rate in the 'True' (i.e. enforced mask policy) category (2473/100,000) is substantially lower than that of the 'False' (i.e. no enforced mask policy) category (3303/100,000):
 
@@ -349,7 +345,7 @@ $$
 ```{r model_1 summary, results = "asis"}
 model_1 <- lm(case_rate ~ mask_use + test_rate, data = df)
 std_errors = sqrt(diag(vcovHC(model_1)))
-stargazer(model_1, se = std_errors, type = "latex", title = "Model 1 Summary")
+stargazer(model_1, se = std_errors, type = "text", title = "Model 1 Summary")
 ```
 
 
@@ -392,7 +388,7 @@ It is difficult to make *a priori* assumptions regarding the variables we will u
 
 - Age demographics
 - Socioeconomic demographics
-- Actual social distancing
+- Social distancing adherence
 
 Model selection will be based upon our EDA. For each one of these categories, we will look for variables that correlate more strongly with case rate, but without a high degree of collinearity with the other variables already included in the model.
 
@@ -676,7 +672,7 @@ std_errors = list(
   sqrt(diag(vcovHC(model_1))),
   sqrt(diag(vcovHC(model_2)))
 )
-stargazer(model_1, model_2, se = std_errors, type = "latex", title = "Model 2 Summary")
+stargazer(model_1, model_2, se = std_errors, type = "text", title = "Model 2 Summary")
 
 
 ```
@@ -800,7 +796,7 @@ std_errors = list(
   sqrt(diag(vcovHC(model_2))),
   sqrt(diag(vcovHC(model_3)))
 )
-stargazer(model_1, model_2, model_3, type = "latex", se = std_errors, title = "Model 3 Summary")
+stargazer(model_1, model_2, model_3, type = "text", se = std_errors, title = "Model 3 Summary")
 ```
 
 ### Overall model significance (F-test)
@@ -829,7 +825,7 @@ According to Model 3, states that have adopted mandatory mask use would expect t
 
 ## CLM Assumptions & Limitations
 
-In theory, our EDA process should have helped us choose the most optimal variables (and subsequent transformations) to use in our models. Nevertheless, we must assess how good our models are at explaining the causal relationship between the dependent variable (case rate per 100,000), and our primary independent variable of interest (State implementation of a mask mandate) or whether they require further modification and optimization. As such we will consider whether they meet the 5 key assumptions required for the classic linear model (CLM). Moreover, we can also utilize CLM assessment techniques to demonstrate how our iterative model building process has optimized our causal model.   
+In theory, our EDA process should have helped us choose the most optimal variables (and subsequent transformations) to use in our models. Nevertheless, we must assess how good our models are at explaining the causal relationship between the dependent variable (case rate per 100,000), and our primary independent variable of interest (State implementation of a mask mandate) or whether they require further modification and optimization. As such we will consider whether they meet the 5 key assumptions required for the Classic Linear Model (CLM). Moreover, we can also utilize CLM assessment techniques to demonstrate how our iterative model building process has optimized our causal model.   
 
 ### 1) Independent & Identically Distributed Random Variables
 
@@ -898,86 +894,13 @@ Looking at the fitted vs. residuals plot for Model 1, we can see that the residu
 
 Moreover, comparing Model 1 to Model 2, the residuals seem to be more evenly distributed (i.e. randomly about the) about the line in the latter model, with fewer outliers. There is almost no change in residual distribution about the line between Model 2 and 3. We will discuss homoskedasticity in a subsequent section.
 
-Altogether we can see that compared to Model 1, Model 2 does a better job at meeting the fundamental assumption that the error term has a conditional mean of 0. Moreover, Model 3 does not seem to contribute further to meeting this assumption, despite the addition of further variables. 
-
-**Residuals vs. Explanatory Variable**
-
-As our main explanatory variable (mask use) is a binary variable rather than a continous one, we cannot easily demonstrate the effect of the changing model upon the predictor values, however we can see whether the distribution of residuals is constant across the binary categories:
-
-```{r}
-plot_1_residuals <- model_1 %>%  
-  ggplot(aes(x = mask_use, y = model_1_residuals)) + 
-  geom_boxplot() +
-  labs(
-    title = "Model 1: Residuals vs. Predictor (Mask Use Policy)",
-    x = "Mask Mandate In Place",
-    y = "Residuals"
-  )
-
-plot_2_residuals <- model_2 %>%
-  ggplot(aes(x = mask_use, y = model_2_residuals)) + 
-  geom_boxplot() +
-  labs(
-    title = "Model 2: Residuals vs. Predictor (Mask Use Policy)",
-    x = "Mask Mandate In Place",
-    y = "Residuals"
-  )
-
-plot_3_residuals <- model_3 %>%
-  ggplot(aes(x = mask_use, y = model_3_residuals)) + 
-  geom_boxplot() +
-  labs(
-    title = "Model 3: Residuals vs. Predictor (Mask Use Policy)",
-    x = "Mask Mandate In Place",
-    y = "Residuals"
-  )
-
-plot_1_residuals
-plot_2_residuals
-plot_3_residuals
-```
-
-As we can see, in Model 1 there is a large difference in residual spread between the groups. Moreover, the expected value for residuals within the False category deviate substantially from 0, compared to the True category. Moreover, the spread of residual errors seems to be much narrower (and with more outliers) compared to residuals from the True category. By adding more control variables to the model, we can see that the expected value of the residuals for the True category is approximately 0, however the expected value for the False residuals has now become negative. Nevertheless, the spread between the two groups is now more similar. There is almost no discernable change in the expected value of the residuals between Model 2 and Model 3.
-
-?delete
-```{r}
-plot_1_residuals <- model_1 %>%  
-  ggplot(aes(x = test_rate, y = model_1_residuals)) + 
-  geom_point() + 
-  stat_smooth(se = TRUE)
-
-plot_2_residuals <- model_2 %>%  
-  ggplot(aes(x = test_rate, y = model_2_residuals)) + 
-  geom_point() + 
-  stat_smooth(se = TRUE)
-
-plot_3_residuals <- model_3 %>%  
-  ggplot(aes(x = test_rate, y = model_3_residuals)) + 
-  geom_point() + 
-  stat_smooth(se = TRUE)
-
-plot_1_residuals
-plot_2_residuals
-plot_3_residuals
-```
-
+Altogether we can see that compared to Model 1, Model 2 does a better job at meeting the fundamental assumption that the error term has a conditional mean of 0 across all the x support. Moreover, Model 3 does not seem to contribute further to meeting this assumption, despite the addition of further variables. 
 
 3) No Perfect Collinearity
 
 **Dropped Coefficients**
 
-We can assess for perfect collinearity by looking to see if there are any dropped coefficients in any of the 3 models:
-
-```{r, results = "asis"}
-std_errors = list(
-  sqrt(diag(vcovHC(model_1))),
-  sqrt(diag(vcovHC(model_2))),
-  sqrt(diag(vcovHC(model_3)))
-)
-stargazer(model_1, model_2, model_3, type = "latex", se = std_errors, title = "Model 3 Summary")
-```
-
-As we can see, none of the variables have been dropped from any of the models, indicating that there is no perfect colinearity between any of the independent variables. 
+We can assess for perfect collinearity by looking to see if there were any dropped coefficients in any of the 3 models. As we can see in the model section above, none of the variables have been dropped from any of the models, indicating that there is no perfect colinearity between any of the independent variables. 
 
 **Variance Inflation Factor**
 
@@ -992,19 +915,19 @@ $$
 Where $R^2_i$ is the coefficient of determnation of of a regression equation with $X_i$ on the left hand side, and all other predictor variables on the right hand side. Subsequently, it will produce a VIF index value for the coefficient estimator of the particular variable we are analyzing ($\mathrm{VIF}(\hat{\beta_i})$). According to several sources, $\mathrm{VIF}(\hat{\beta_i})>10$ (some also say values >5 indicate high colinearity) is considered indicative of multicolinearity.
 
 ```{r}
-car::vif(model_1)
+covid::vif(model_1)
 ```
 
 The VIF values for both variables in Model 1 are <2, indicating no high degree of colinearity between the two independent variables.
 
 ```{r}
-car::vif(model_2)
+covid::vif(model_2)
 ```
 
 The VIF values for all variables in Model 2 are <2, indicating no high degree of multicolinearity between the 5 independent variables.
 
 ```{r}
-car::vif(model_3)
+covid::vif(model_3)
 ```
 
 The VIF values for all variables in Model 3 are <2, indicating no high degree of multicolinearity between the 7 independent variables.
