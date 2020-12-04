@@ -7,6 +7,10 @@ output:
   html_document:
     df_print: paged
 ---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
 ```{r library imports, include = FALSE}
 library(tidyverse)
 library(lmtest)
@@ -160,7 +164,7 @@ Observations that were marked as "< 0.01" were rounded down to 0 so that they co
 
 ### Objective
 
-Model 1 is our simplest model. It aims to measure the strength of the relationship between the presence of mandatory mask use policy for all individuals and the covid case rate per 100k in US states. It has no other covariate, with the exception of test rate, which we included as a way to control for the impact that different test availabilities might have on the reported case rate by state. 
+Model 1 is our simplest model. It aims to measure the strength of the relationship between the presence of mandatory mask use policy for all individuals and the COVID-19 case rate per 100k in US states. It has no other covariate, with the exception of test rate, which we included as a way to control for the impact that different test availabilities might have on the reported case rate by state. 
 
 ```{r initialize model 1}
 df_mod1 <- df %>%
@@ -238,7 +242,7 @@ summary(df_mod1$mask_use)
 
 We can also see that only 1/3 of all the States surveyed did not implement a mask use policy.
 
-Based on our hypothesis, implementation of a Statewide mask-use policy should lead to a decrease in the number of covid cases by preventing their spread. From the box plot comparison below we can visually discern an apparent positive correlation between mask use policy categories and case rates. This broadly falls in line with our hypothesis, as we can see that the mean case rate in the 'True' (i.e. enforced mask policy) category (2473/100,000) is substantially lower than that of the 'False' (i.e. no enforced mask policy) category (3303/100,000):
+Based on our hypothesis, implementation of a Statewide mask-use policy should lead to a decrease in the number of COVID cases by preventing their spread. From the box plot comparison below we can visually discern an apparent positive correlation between mask use policy categories and case rates. This broadly falls in line with our hypothesis, as we can see that the mean case rate in the 'True' (i.e. enforced mask policy) category (2473/100,000) is substantially lower than that of the 'False' (i.e. no enforced mask policy) category (3303/100,000):
 
 ```{r warning=FALSE, message=FALSE, fig.height = 4, fig.width = 5}
 
@@ -309,24 +313,24 @@ We found that our initial assumptions have been validated by a cursory analysis 
 
 ### Model specification
 
-Our first regression model has **Covid-19 Case Rate per 100,000 habitants** as the outcome variable and two covariates: our variable of interest (**Mandatory Mask Use**) and **Test Rate per 100,000 habitants**.  
+Our first regression model has **COVID-19 Case Rate per 100,000 Population** as the outcome variable and two covariates: our variable of interest (**Mandatory Mask Use**) and **Test Rate per 100,000 Population**.  
 
 **Test Rate** has been included because there is an evident positive relationship between test rates and case rates. Subsequently, it should be included as a control variable in our subsequent models in order to prevent potential misattribution of effects to other included variables. 
   
 Model 1 is subsequently defined as: 
 
 $$
-\begin{align}
+\begin{aligned}
 \mathrm{case\ rate\ per\ 100,000\ pop.} = \beta_0 + \beta_1(\mathrm{mandatory\ mask\ use\ policy}) + \beta_2(\mathrm{test\ rate\ per\ 100,000\ pop.})
-\end{align}
+\end{aligned}
 $$
 
 ### Model summary
 
-```{r model_1 summary, warning = FALSE}
+```{r model_1 summary, results = "asis"}
 model_1 <- lm(case_rate ~ mask_use + test_rate, data = df)
 std_errors = sqrt(diag(vcovHC(model_1)))
-stargazer(model_1, se = std_errors, type = "text", title = "Model 1 Summary")
+stargazer(model_1, se = std_errors, type = "latex", title = "Model 1 Summary")
 ```
 
 
@@ -405,7 +409,7 @@ df_age %>%
 
 Next we ensure there is no spurious data contained in any of the age categories. From below, we can see that all the categories look to be well behaved in terms of the data they contain:
 
-```{r summary stats age}
+```{r summary age}
 df_age %>%
   select(where(is.numeric)) %>%
   summary()
@@ -474,7 +478,7 @@ df_race[,c(-1,-2)] %>%
 
 Next we ensure there is no spurious data contained in any of the race categories. From below, we can see that all the categories look to be well behaved in terms of the data they contain:
 
-```{r summary stats race}
+```{r summary race}
 df_race[,c(-1,-2)] %>%
   select(where(is.numeric)) %>%
   summary()
@@ -486,7 +490,7 @@ Now that we have ensured the integrity of our data, we examine how the State per
 ggpairs(df_race[,-1])
 ```
 
-As we can see from the above scatterplot matrix, in general there are generally weak relationships between case rate per 100,000 inhabitants and percentage of the particular racial group per State, in fact the majority show a negative relationship. Nevertheless, we can observe that the strongest absolute value for relationship is positive, and demonstrated by the percentage of black population per State, correlating with case rate with an r = ~0.3. We can visualize the distribution of black people by percentage of State population using a bar graph:
+As we can see from the above scatterplot matrix, in general there are generally weak relationships between case rate per 100,000 population and percentage of the particular racial group per State, in fact the majority show a negative relationship. Nevertheless, we can observe that the strongest absolute value for relationship is positive, and demonstrated by the percentage of black population per State, correlating with case rate with an r = ~0.3. We can visualize the distribution of black people by percentage of State population using a bar graph:
 
 ```{r warning=FALSE, fig.height = 6, message=FALSE}
 hist_state_black <- df %>%
@@ -634,29 +638,27 @@ The causal diagram for Model 2 further resembles the diagram from the introducti
 
 ### Model specification
 
-The second regression model has **Covid-19 Case Rate per 100,000 population** as the outcome variable and 5 covariates: The variable of interest (**Mandatory Mask Use**), and 4 control variables: **Test Rate per 100,000 Population**, **Percentage of Population Below 25 Years Old**, **Log of Percentage of Black Ethnicity in Total Population + 1**, and **Human Mobility Change in Transit Stations**.  
+The second regression model has **COVID-19 Case Rate per 100,000 population** as the outcome variable and 5 covariates: The variable of interest (**Mandatory Mask Use**), and 4 control variables: **Test Rate per 100,000 Population**, **Percentage of Population Below 25 Years Old**, **Log of Percentage of Black Ethnicity in Total Population + 1**, and **Human Mobility Change in Transit Stations**.  
 
 The variable of interest continues to be **Mandatory Mask Use** and the primary measurement goal remains to assess the significance and practical impact of **Mandatory Mask Use** on the **Case Rate**. We predict this model (with more control variables) to be better at capturing the actual significance and practical relevance of the **Mandatory Mask Use** on **Case Rate**.    
 
 Model 2 has the format: 
 $$
-\begin{align}
+\begin{aligned}
 \mathrm{case\ rate\ per\ 100,000\ pop.} = \beta_0 + \beta_1(\mathrm{mandatory\ mask\ use\ policy}) +
 \beta_2(\mathrm{test\ rate\ per\ 100,000\ pop.}) + \\ \beta_3(\mathrm{\% \ pop.\ <25}) +  \beta_4(\mathrm{\ln (\%\ black\ pop. + 1)}) + \beta_5(\mathrm{mobility\ \Delta\ transit\ stations})
-\\
-
-\end{align}
+\end{aligned}
 $$
 
 ### Model Summary
 
-```{r model_2 summary, warning = FALSE}
+```{r model_2 summary, results = "asis"}
 model_2 <- lm(case_rate ~ mask_use + test_rate + age_below_25 + log(black_pop + 1) + mob_TS, data = df)
 std_errors = list(
   sqrt(diag(vcovHC(model_1))),
   sqrt(diag(vcovHC(model_2)))
 )
-stargazer(model_1, model_2, se = std_errors, type = "text", title = "Model 2 Summary")
+stargazer(model_1, model_2, se = std_errors, type = "latex", title = "Model 2 Summary")
 
 
 ```
@@ -684,7 +686,7 @@ coeftest(model_2, vcovHC)
 
 ### Practical significance  
 
-According to Model 2, suggests that enforcing a mandatory mask use policy would expect to reduce the COVID-19 positive case rate by ~-919.2 covid cases per 100,000 population. Given that the median case rate across US states is 2,633 per 100,000 population, the coefficient estimate has practical significance, with an effect size corresponding to a reduction of 34.9% of the median State case rate value.
+According to Model 2, suggests that enforcing a mandatory mask use policy would expect to reduce the COVID-19 positive case rate by ~919.2 cases per 100,000 population, with all other variables being held constant. Given that the median case rate across US states is 2,633 per 100,000 population, the coefficient estimate has practical significance, with an effect size corresponding to a reduction of 34.9% of the median State case rate value.
 
 ## Model 3
 
@@ -701,7 +703,7 @@ df_mod3 <- df %>%
   select(state, case_rate, bus_close_days, shelter_days, mask_legal, maskbus_use)
 ```
 
-#### Case Rate vs. Other Covid Related Policies
+#### Case Rate vs. Other COVID Related Policies
 
 The variables selected in the exploratory phase of Model 3 regard other COVID-19 specific policies. We are using the number of days a business had to close, the duration of shelter-in-place, and whether there was legal enforcement to wear a mask.
 
@@ -756,7 +758,7 @@ The causal diagram for Model 3 is the most "complete" model, and is thus identic
 
 ### Model specification
 
-Model 3 has **Covid-19 Case Rate per 100,000 Population** as the primary outcome variable and seven covariates: the primary variable of interest (**Mandatory Mask Use**), **Test Rate per 100,000 Population**, **Percentage of Population Below 25 Years Old**, **Log of Percentage of Black Ethnicity in Total Population + 1**, 
+Model 3 has **COVID-19 Case Rate per 100,000 Population** as the primary outcome variable and seven covariates: the primary variable of interest (**Mandatory Mask Use**), **Test Rate per 100,000 Population**, **Percentage of Population Below 25 Years Old**, **Log of Percentage of Black Ethnicity in Total Population + 1**, 
 **Human Mobility Change in Transit Stations**, **Number of Days of Shelter in Place**, and **Number of Days of Non-Essential Businesses Closure**.  
 
 **Model 3** will demonstrate robustness of **Model 2** ($\tilde \beta_1$). New variables on **Model 3** represent other common policies US states have adopted to combat the virus spread. They have some collinearity with mask use as would be expected, since typically States enact a set of policies against COVID-19 concurrently.  
@@ -765,22 +767,21 @@ Despite losing some explanatory power due to inclusion of the new variables, the
 
 Model 3 has the format: 
 $$
-\begin{align}
+\begin{aligned}
 \mathrm{case\ rate\ per\ 100,000\ pop.} = \beta_0 + \beta_1(\mathrm{mandatory\ mask\ use\ policy}) +
 \beta_2(\mathrm{test\ rate\ per\ 100,000\ pop.}) + \\ \beta_3(\mathrm{\% \ pop.\ <25}) +  \beta_4(\mathrm{\ln (\%\ black\ pop. + 1)}) + \beta_5(\mathrm{mobility\ \Delta\ transit\ stations})+\\ \beta_6(\mathrm{number\ days\ shelter\ in\ place}) + \beta_7(\mathrm{number\ days\ businesses\ closed})
-\\
-\end{align}
+\end{aligned}
 $$
 ### Model summary
 
-```{r model_3 summary, warning = FALSE}
+```{r model_3 summary, results = "asis"}
 model_3 <- lm(case_rate ~ mask_use + test_rate + age_below_25 + log(black_pop + 1) + mob_TS + shelter_days + bus_close_days, data = df)
 std_errors = list(
   sqrt(diag(vcovHC(model_1))),
   sqrt(diag(vcovHC(model_2))),
   sqrt(diag(vcovHC(model_3)))
 )
-stargazer(model_1, model_2, model_3, se = std_errors, type = "text", title = "Model 3 Summary")
+stargazer(model_1, model_2, model_3, type = "latex", se = std_errors, title = "Model 3 Summary")
 ```
 
 ### Overall model significance (F-test)
@@ -805,7 +806,7 @@ The estimate for $\beta_1$ (the coefficient for our variable of interest) is $\t
 
 ### Practical significance  
 
-According to Model 3, states that have adopted mandatory mask use would expect to have 913.8 fewer COVID cases per 100,000 population. Given that the median case rate among US states is 2,633 per 100,000 populations, the coefficient estimate has practical significance, with an effect size corresponding to a reduction of 34.7% of the median rate.
+According to Model 3, states that have adopted mandatory mask use would expect to have 913.8 fewer COVID cases per 100,000 population, all other variables held constant. Given that the median case rate among US states is 2,633 per 100,000 populations, the coefficient estimate has practical significance, with an effect size corresponding to a reduction of 34.7% of the median rate.
 
 ## CLM Assumptions & Limitations
 
@@ -948,13 +949,13 @@ plot_3_residuals
 
 We can assess for perfect collinearity by looking to see if there are any dropped coefficients in any of the 3 models:
 
-```{r}
+```{r, results = "asis"}
 std_errors = list(
   sqrt(diag(vcovHC(model_1))),
   sqrt(diag(vcovHC(model_2))),
   sqrt(diag(vcovHC(model_3)))
 )
-stargazer(model_1, model_2, model_3, se = std_errors, type = "text", title = "Model 3 Summary")
+stargazer(model_1, model_2, model_3, type = "latex", se = std_errors, title = "Model 3 Summary")
 ```
 
 As we can see, none of the variables have been dropped from any of the models, indicating that there is no perfect colinearity between any of the independent variables. 
@@ -964,10 +965,12 @@ As we can see, none of the variables have been dropped from any of the models, i
 We can quantify the degree of colinearity between the independent variables by conducting a variance inflation factor (VIF) test. This is the quotient of the variance of a model with multiple terms by by the variance of a model with only one term. It is given by the formula: 
 
 $$
+\begin{aligned}
 \mathrm{VIF} = \frac{1}{1-R_i^2}
+\end{aligned}
 $$
 
-Where $R^2_i$ is the coefficient of determnation of of a regression equation with $X_i$ on the left hand side, and all other predictor variables on the right hand side. Subsequently, it will produce a VIF index value for the coefficient estimator of the particular variable we are analyzing ($\mathrm{VIF}(\hat{\beta_i})$). According to several sources, $\mathrm{VIF}(\hat{\beta_i})>10$ (some also say 5) is considered indicative of multicolinearity.
+Where $R^2_i$ is the coefficient of determnation of of a regression equation with $X_i$ on the left hand side, and all other predictor variables on the right hand side. Subsequently, it will produce a VIF index value for the coefficient estimator of the particular variable we are analyzing ($\mathrm{VIF}(\hat{\beta_i})$). According to several sources, $\mathrm{VIF}(\hat{\beta_i})>10$ (some also say values >5 indicate high colinearity) is considered indicative of multicolinearity.
 
 ```{r}
 car::vif(model_1)
@@ -1148,9 +1151,7 @@ For our 'best' model (model 2), the coefficient for Mandatory Mask Use is ~-919,
 For the 3 omitted variables that we either have proxy (Travel restrictions, % Republicans) or direct data (Average annual temperature) for, we will calculate the omitted variable bias using the base model usng the following system:
 
 $$
-\begin{aligned}
 \tilde{Y} = \tilde{\beta_0} + \tilde{\beta_1}X_1 + \epsilon_1\\
-\end{aligned}
 $$
 
 This specifies the biased estimation. Where $\tilde{Y}$ is the dependent variable (i.e. positive cases per 100,000 population), $\tilde{\beta_0}$ is the y-intercept term, $\tilde{\beta_1}$ the coefficient of the independent variable of interest (i.e. whether the state implemented a mask use policy, $X_1$) and $\epsilon_1$ the associated error term.
@@ -1158,9 +1159,7 @@ This specifies the biased estimation. Where $\tilde{Y}$ is the dependent variabl
 By including the omitted variable, the theoretically 'true' or unbiased estimator becomes:
 
 $$
-\begin{aligned}
-\hat{Y} = \hat{\beta_0} + \hat{\beta_1}X_1 + \hat{\beta_2}X_2 + \epsilon_2\\
-\end{aligned}
+\hat{Y} = \hat{\beta_0} + \hat{\beta_1}X_1 + \hat{\beta_2}X_2 + \epsilon_2
 $$
 
 Where $\hat{Y}$ is the dependent variable (i.e. positive cases per 100,000 population), $\hat{\beta_0}$ is the y-intercept term, $\hat{\beta_1}$ the unbiased coefficient of the independent variable of interest (i.e. whether the state implemented a mask use policy, $X_1$), $\hat{\beta_2}$ the unbiased coefficient of the omitted variable $X_2$, and $\epsilon_2$ the modified associated error term.
@@ -1200,20 +1199,18 @@ As the relationship between the omitted variable and the dependent variable is n
 
 We prove our omitted variable bias predictions in this instance, by using a proxy from the 'COVID-19 US State Policy Dataset' specifically pertaining to whether a state required all visitors entering from another state to quarantine and adding it to a regression equation between the main variable of interest (mask use policies) and the dependent variable (positive cases per 100,000). Due to the potentially complicated effects exerted upon the dependent and independent variables in a model with >1 variable, we will only use the dependent and independent variables of interest (plus the omitted variable in the unbiased estimation) to demonstrate omitted variable bias:
 
-```{r ovb quarantine, warning = FALSE}
+```{r ovb quarantine, results = "asis"}
 base_model <- lm(case_rate ~ mask_use, data = df2)
 model_quar <- lm(case_rate ~ mask_use + state_quarantine, data = df2)
 
-stargazer(base_model, model_quar, type = "text", title = "Omitted Variable Bias Comparison: Travel Restrictions")
+stargazer(base_model, model_quar, type = "latex", title = "Omitted Variable Bias Comparison: Travel Restrictions")
 ```
 
 As we can see here, the overall effect of including quarantine information upon our variables of interest is concordant with predictions, and we observe an increase (i.e. moving towards 0) in the overall coefficient value for our independent variable of interest (mask use policies) meaning that lesser effect is attributed to it in a more 'true' system. We can further calculate and prove that our predictions of negative omitted variable bias were correct by subtracting the value of the coefficient of interest in the unbiased estmation (i.e. $\hat{\beta_1}$) from that of the 'false' model (i.e. $\tilde{\beta_1}$):
 
 $$
-\begin{aligned}
 \tilde{\beta_1} - \hat{\beta_1} = -830.0-(-808.5)\\
 \approx -21.5
-\end{aligned}
 $$
 
 ### Average Temperature 
@@ -1228,19 +1225,17 @@ As the relationship between the omitted variable and both the dependent and inde
 
 We prove our omitted variable bias prediction in this instance, by using externally-sourced data pertaining to a State's average annual temperature and adding it to a regression equation between the main variable of interest (mask use policies) and the dependent variable (positive cases per 100,000). Due to the potentially complicating effects exerted upon the dependent and independent variables in a model with >1 variable, we will only use the dependent and independent variables of interest (plus the omitted variable in the 'true' model) to demonstrate omitted variable bias:
 
-```{r ovb climate, warning = FALSE}
+```{r ovb climate, results = "asis"}
 model_climate <- lm(case_rate ~ mask_use + temp, data = df2)
 
-stargazer(base_model, model_climate, type = "text", title = "Omitted Variable Bias Comparison: Average Annual Temperature")
+stargazer(base_model, model_climate, type = "latex", title = "Omitted Variable Bias Comparison: Average Annual Temperature")
 ```
 
 As we can see here, the overall effect of including average annual State temperature information upon our variables is concordant with predictions, and we observe an increase (i.e. moving towards 0) in the overall coefficient value for our independent variable of interest (mask use policies) meaning that lesser effect is attributed to it in a more 'true' system. We can further calculate and prove that our predictions of negative omitted variable bias were correct by subtracting the value of the coefficient of interest in the unbiased estmation (i.e. $\hat{\beta_1}$) from that of the 'false' model (i.e. $\tilde{\beta_1}$): 
 
 $$
-\begin{aligned}
 \tilde{\beta_1} - \hat{\beta_1} \approx -830.0-(-775.0)\\
 \approx -55.0
-\end{aligned}
 $$
 
 ### Percentage of Republican Voters
@@ -1255,19 +1250,17 @@ As there is a positive relationship between the omitted variable (% of Republica
 
 We can actually calculate the omitted variable bias in this instance, by using the political affiliation of the elected officials as proxies for majority political inclination in the State. States with Republican officials are represented by the binary variable 1, and Democrats 0. Due to the potentially complicating effects exerted upon the dependent and independent variables in a model with >1 variable, we will only use the dependent and independent variables of interest (plus the omitted variable in the 'true' model) to demonstrate omitted variable bias:  
 
-```{r ovb republicans, warning = FALSE}
+```{r ovb republicans, results = "asis"}
 model_party <- lm(case_rate ~ mask_use + political_party, data = df2)
 
-stargazer(base_model, model_party, type = "text", title = "Omitted Variable Bias Comparison: Republican Majority")
+stargazer(base_model, model_party, type = "latex", title = "Omitted Variable Bias Comparison: Republican Majority")
 ```
 
 As we can see here, the overall effect upon the variables of interest caused by including information about a State's political inclination is concordant with predictions. We observe an increase (i.e. moving towards 0) in the overall coefficient value for our independent variable of interest (mask use policies) meaning that lesser effect is attributed to it in a more 'true' system. We can further calculate and prove that our predictions of negative omitted variable bias were correct by subtracting the value of the coefficient of interest in the unbiased estmation (i.e. $\hat{\beta_1}$) from that of the 'false' model (i.e. $\tilde{\beta_1}$):
 
 $$
-\begin{aligned}
 \tilde{\beta_1} - \hat{\beta_1} \approx -830.0-(-688.0)\\
 \approx -142.0
-\end{aligned}
 $$
 
 # Conclusion
