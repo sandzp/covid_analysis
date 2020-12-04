@@ -896,7 +896,7 @@ Moreover, comparing Model 1 to Model 2, the residuals seem to be more evenly dis
 
 Altogether we can see that compared to Model 1, Model 2 does a better job at meeting the fundamental assumption that the error term has a conditional mean of 0 across all the x support. Moreover, Model 3 does not seem to contribute further to meeting this assumption, despite the addition of further variables. 
 
-3) No Perfect Collinearity
+### 3) No Perfect Collinearity
 
 **Dropped Coefficients**
 
@@ -974,6 +974,7 @@ plot_3_sl <- model_3 %>%
   )
 
 plot_1_sl
+# plot(model_1, 3) could do this for the three plots to cut down on code
 plot_2_sl
 plot_3_sl
 ```
