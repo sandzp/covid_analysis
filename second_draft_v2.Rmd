@@ -19,6 +19,7 @@ library(stargazer)
 library(knitr)
 library(GGally)
 library(naniar)
+library(gridExtra)
 ```
 
 ```{r data schema, include = FALSE}
@@ -106,23 +107,21 @@ df <- read_delim(
 
 # Introduction
 
-As of October 2020, more than 10 million Americans have been infected with the novel coronavirus (COVID-19). More than 240,000 have perished. Governments from the local to state to federal level have scrambled to enact policies to control the spread of the virus. Despite all of their efforts, the United States currently leads the globe in both the number of cases and the number of deaths.
+As of October 2020, more than 10 million Americans have been infected with the novel coronavirus (COVID-19). More than 240,000 have perished. Local, state and federal governments have scrambled to enact measure to control the spread of the virus. Despite intensive efforts, the United States currently leads the globe in both the number of cases and the number of deaths.
 
-One of the earliest recommendations by health officials to help protect against contracting the virus was to don Personal Protective Equipment (PPE), more specifically face masks. However, not all face masks are created equally. The highly effective N-95 face masks (which filter 95% of airborne particles) were scarcely available and rightfully reserved primarily for frontline healthcare workers, resulting in a boom in production of the next best public alternative: cloth face mask coverings. While not as effective as the medical-grade N-95, when combined with social distancing cloth face masks were said to drastically reduce the risk of the virus spreading. In the absence of sophisticated testing, containment, and contact tracing techniques, the adoption of face masks in the United States became an essential strategic component in the COVID-19 containment efforts.
+A relatively simple way to control spread of this respiratory pathogen is by use of personal protective equipment, specifically face masks. When combined with social distancing face masks are an effective way of reducing spread within communities, workplaces and other public areas. In the absence of sophisticated testing, containment, and contact tracing techniques, the adoption of face masks in the United States has become an essential strategic component in the fight against COVID-19.
 
-As shown in the below diagram, the biggest beneficiaries of wearing a mask are actually other people. While it is hard to quantify the exact efficacy, wearing a mask aids considerably in reducing the spread of airborne particles of the mask-wearer. Given that many COVID-19 carriers remain asymptomatic for at least some period of time, the messaging from health officials centered around a moral and social obligation to help contain the virus spread. 
+On April 3, 2020, the Center for Disease Control (CDC) issued an official recommendation advising all persons to wear a cloth face mask or covering in public to help slow the spread of the coronavirus. Almost every state went on to enact a policy requiring people to wear face masks at all times in public settings. In fact, only 7 states to date have not complied (although many have since ended their order). While it is hard to quantify the exact efficacy, wearing a mask aids considerably in reducing the spread of airborne particles from the mask-wearer to others (see diagram below). Given that many COVID-19 carriers remain asymptomatic for potentially long periods, the message from health officials centers around a civic obligation to prevent virus spread. 
 
 ![](images/WearMask.png)
 
-On April 3, 2020, the Center for Disease Control (CDC) issued an official recommendation advising all persons to wear a cloth face mask or covering in public to help slow the spread of the coronavirus. Following this guidance, almost every state went on to enact a policy requiring people to wear face masks at all times in public settings. In fact, only 7 states to date have proceeded with no such policy (although many have since ended their order).
+Despite all of these recommendations, the use of face masks has become politicized and undermined by large swaths of the country’s population. Conflicting messaging from government officials, including the President himself, has resulted in a loss of credibility and trust in the CDC. As such, some states, counties, districts and individuals continue to ignore scientific advice by neglecting to enforce, or abide by mask use mandates. This may be one of the reasons behind the seemingly unimpeded rise of COVID-19 case rates in the US, when in comparison, other countries with stricter regulations (and better public compliance) have managed to control the spread.
 
-Despite all of these recommendations, the use of face masks has become politicized and undermined by large swaths of the country’s population. Conflicting messaging from government officials, including the President himself, has resulted in a loss of credibility and trust in the CDC. Whether as a result of denial, distrust, or a desire to feel in control, the fact remains that tens of millions of Americans would rather take the risk over wearing a face mask in public. And for all we know, they could be justified in doing so!
-
-Accordingly, as a team we decided to leverage the provided dataset to validate the guidance from the CDC and answer the following question:
+Accordingly, as a team we have decided to leverage the provided dataset in order to public health guidance and answer the following question:
 
 **Does the implementation of a mandatory face mask policy for all individuals aid in reducing the case rate of COVID-19 in the United States?**
 
-We hypothesize that a face mask mandate does indeed have a measurable & causal impact on containing the spread of COVID-19, even when taking into account age and socioeconomic demographics, social distancing adherence, and other related policies. This is visually represented in the causal diagram below. Our measurement goal is to assess the statistical significance and practical significance of mandatory face mask usage policies on reducing the COVID-19 case rate in the United States. Over the course of this report, we will methodically include incremental covariates from the aforementioned categories in our regression modeling in an effort to isolate the portion of case rate variability actually explained by the implementation of a mandatory face mask policy for all individuals in the United States. These other covariates, while important, will help absorb some of the “noise” not specifically associated with the implementation of a face mask policy.
+We hypothesize that a face mask mandate does indeed have a measurable & causal impact on containing the spread of COVID-19, even when taking into account age and socioeconomic demographics, social distancing adherence, and other related policies. This is visually represented in the causal diagram below. Our measurement goal is to assess the statistical significance and practical significance of mandatory face mask usage policies in reducing the COVID-19 case rate in the United States. Over the course of this report, we will methodically include incremental covariates from the aforementioned categories in our regression modeling in an effort to isolate the portion of case rate variability actually explained by the implementation of a mandatory face mask policy for all individuals in the United States. These other covariates, while important, will help absorb some of the “noise” not specifically associated with the implementation of a face mask policy.
 
 ![](images/intro_causal_diagram.png)
 
@@ -850,7 +849,7 @@ The linear regression model assumes a straight-line relationship between the pre
 
 **Residuals vs. Fitted**
 
-```{r}
+```{r, fig.height=3}
 
 model_1_residuals = resid(model_1)
 model_2_residuals = resid(model_2)
@@ -889,13 +888,19 @@ plot_3_predicts <- model_3 %>%
     x = "Fitted Values",
     y = "Residual Values"
   )
+```
 
+Looking at the fitted vs. residuals plot for Model 1 (below), we can see that the residuals demonstrate an element of non-linearity (evidenced especially at fitted values > 3,500), indicating problems with the model:
+```{r}
 plot_1_predicts
+```
+
+In model 2, with the addition of several more control variables, we can see that the plot assumes a more linear pattern, with the line much closer to 0. There appears to be very little difference (almost indiscernable to the naked eye) between the fitted vs. residual line between Model 2 and 3, indicating that Model 3, despite the addition of several more variables, does little to improve the overall model:
+
+```{r}
 plot_2_predicts
 plot_3_predicts
 ```
-
-Looking at the fitted vs. residuals plot for Model 1, we can see that the residuals demonstrate an element of non-linearity (evidenced especially at fitted values > 3,500), indicating problems with the model. In model 2, with the addition of several more control variables, we can see that the plot assumes a more linear pattern, with the line much closer to 0. There appears to be very little difference (almost indiscernable to the naked eye) between the fitted vs. residual line between Model 2 and 3, indicating that Model 3, despite the addition of several more variables, does little to improve the overall model. 
 
 Moreover, comparing Model 1 to Model 2, the residuals seem to be more evenly distributed (i.e. randomly about the) about the line in the latter model, with fewer outliers. There is almost no change in residual distribution about the line between Model 2 and 3. We will discuss homoskedasticity in a subsequent section.
 
@@ -947,7 +952,7 @@ There are two methods we can employ to test for homocedasticity of the error ter
 
 This is a method to visually assess for homoscedasticity of the error terms. 
 
-```{r}
+```{r, fig.height=3}
 plot_1_sl <- model_1 %>%  
   ggplot(aes(x = model_1_predicteds, 
              y = sqrt(abs(model_1_residuals/sd(model_1_residuals))))) + 
@@ -976,17 +981,21 @@ plot_3_sl <- model_3 %>%
   geom_point() + 
   stat_smooth(color="green", se=FALSE) +
   labs(
-    title = "Scale-Location Plot: Model 3",
-    x = "Fitted Values",
+    title = "Scale-Location Plot: Model 3",    x = "Fitted Values",
     y = "sqrt(|Standardized Residuals|)"
   )
+```
 
+In Model 1, it seems like there are a greater concentration of points below the line, which demonstrates evident curvature at the lower and upper X-scale, with a greater upward slope at Fitted values > 3500. It is difficult to test for heteroscedasticity in this plot:
+```{r}
 plot_1_sl
+```
+
+In Model 2, the errors seem much more evenly distributed above and below the line, which is also straighter than that in Model 1. However it seems that the error magnitude is increasing as X increases. There is almost no discernable change in any of the aforementioned parameters between Model 2 and 3, indicating that the extra added variables do nothing to increase the efficacy of our model:
+```{r}
 plot_2_sl
 plot_3_sl
 ```
-
-In Model 1, it seems like there are a greater concentration of points below the line, which demonstrates evident curvature at the lower and upper X-scale, with a greater upward slope at Fitted values > 3500. It is difficult to test for heteroscedasticity in this plot. In Model 2, the errors seem much more evenly distributed above and below the line, which is also straighter than that in Model 1. However it seems that the error magnitude is increasing as X increases. There is almost no discernable change in any of the aforementioned parameters between model 2 and 3, indicating that the extra added variables do nothing to increase the efficacy of our model. 
 
 As it is difficult to discern homoscedasticity in the scale-location plot for model 1, and it appears errors are increasing in magnitude in both model 2 and 3, we can also perform a quantitative assessment for non-constant variance in the form of the Breusch-Pagan test. Our null hypothesis is that there is no evidence for heteroscedastic variance.
 
@@ -1072,15 +1081,17 @@ mod_3_qq <- model_3 %>%
 ```
 
 ```{r}
-mod_1_hist
-mod_1_qq
-mod_2_hist
-mod_2_qq
-mod_3_hist
-mod_3_qq
+grid.arrange(mod_1_hist, mod_1_qq, nrow=2)
 ```
 
-As we can see, in model 1 even though the distribution of residuals represented by the histogram seems somewhat evenly distributed about 0, with a slight negative skew, the associated Q-Q plot shows that the points fall very far from the line at the theoretical quantile values -1 and 1, indicating a heavy-tailed distribution of residuals. In comparison, it is difficult to make the claim that the residuals are normally distributed in Models 2 and 3 (which are almost identical), with an extreme negative outlier obvious in both. This is reflected in the Q-Q plot for these models, however with the caveat that the points are generally more well behaved and congruent with the Q-Q line versus that of Model 1. Nevertheless, Models 2 and 3 also suffer from a heavy-tailed residual distribution, albeit on that is uni-directional rather than the bi-directional heavy tails of Model 1's residual distribution. 
+As we can see from above, in model 1 even though the distribution of residuals represented by the histogram seems somewhat evenly distributed about 0, with a slight negative skew, the associated Q-Q plot shows that the points fall very far from the line at the theoretical quantile values -1 and 1, indicating a heavy-tailed distribution of residuals. We now look to see if this has improved in Model 2 and 3:
+
+```{r}
+grid.arrange(mod_2_hist, mod_2_qq, nrow=2)
+grid.arrange(mod_3_hist, mod_3_qq, nrow=2)
+```
+
+In comparison, when looking at the Q-Q plot it appears that the residuals are more well behaved in Models 2 and 3 (which are almost identical), but with an extreme negative outlier at theoretical quantiles <-2 obvious in both. This is reflected in the histogram for these models. Nevertheless, Models 2 and 3 also suffer from a heavy-tailed residual distribution, albeit on that is uni-directional rather than the bi-directional heavy tails of Model 1's residual distribution, so Models 2 and 3 do a better job at meeting the CLM assumptions.  
  
 ## Omitted Variables Discussion
 
@@ -1217,13 +1228,13 @@ $$
 
 # Conclusion
 
-COVID-19 is not a disease to take lightly. As the death toll and case rate continue to mount, we must collectively work together to slow the spread. Our modeling above concludes that the implementation of a mandatory face mask policy for all individuals is effective in reducing the COVID-19 case rate by upwards of 900 cases per 100,000 residents within the United States. 
+Our analysis demonstrates that implementation of a statewide mandatory face mask policy is effective in reducing the COVID-19 case rate by >900 cases per 100,000 population.
 
-Our exploratory data analysis helps inform how we chose the variables we did, ranging from age to socioeconomic demographics to social distancing adherence. Leveraging those variables, our second and most optimal model achieved an adjusted $R^2$ value of 63.3%. Further controlling for other COVID-19 policy variables such as shelter-in-place and closure of businesses did not erode the adjusted $R^2$ value very much (61.6%), and the residual standard error remained nearly constant. As demonstrated in the progression of our modeling, the statistical significance and practical significance remain robust even with the addition of several other variables. All of the models presented also meet the assumptions of the CLM. Finally, we additionally highlighted a healthy variety of omitted variables to assess potential bias on our primary model coefficients. 
+We believe we have adequately justified the choice of our primary causal variable, together with control variables in the models. This is evidenced by an increase in performance from Model 1 to Model 2. Moreover, deliberate introdution of potential confounders into the optimized model (Model 2) did not significantly affect its performance, indicating its robustness.
 
-The next few months will be crucial for the country to course correct until the widespread availability and administration of a safe vaccine. We have already lost far too many of our fellow citizens to this disease.
+Practically, as we have demonstrated that enforcement of face mask regulations reliably causes a reduction in case rates, our results can be used as evidence in support of public health measures. 
 
-Wear a mask. Slow the spread.
+"Wear a mask. Slow the spread."
 
 # References
 
