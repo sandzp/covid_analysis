@@ -221,18 +221,29 @@ From the above histogram, we can see that the case rate is approximately normall
 
 Next, we can visually assess the case rate across the 50 states by plotting a bar graph:
 
+```{r include=FALSE}
+get_quantiles <- function(column) {
+  quantiles <- data.frame(
+    name = factor(c("3rd Quartile", "Mean", "1st Quartile"), levels = c("3rd Quartile", "Mean", "1st Quartile")),
+    value = c(quantile(column, 0.75), mean(column), quantile(column, 0.25))
+  )
+  
+  return(quantiles)
+}
+```
+
 ```{r warning=FALSE, fig.height = 4, message=FALSE}
+quantiles <- get_quantiles(df$case_rate)
+
 df %>%
   ggplot(aes(x = state, y = case_rate)) +
   geom_bar(stat="identity") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  geom_hline(data = quantiles, aes(yintercept = value, color = name)) +
   labs(title = "Case Rate Across 50 States",
        y = "Case Rate/100,000",
        x = "State",
-       color = "Legend") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
-  geom_hline(aes(yintercept=mean(df$case_rate), color='Mean')) +
-  geom_hline(aes(yintercept=quantile(df$case_rate, 0.25), color='1st Quartile')) +
-  geom_hline(aes(yintercept=quantile(df$case_rate, 0.75), color='3rd Quartile'))
+       color = "Legend")
 ```
 
 We can see that there are a substantial number of states with case rates below the mean (2,749), and a few below the 1st (2,040) and 3rd (3,516) quartiles.
@@ -436,6 +447,8 @@ First we can plot a scatterplot to see what percentage of the population <25 exi
 ```{r warning=FALSE, fig.height = 4, message=FALSE}
 df_age$age_below_25 = df$age_0_18 + df$age_19_25
 df$age_below_25 = df$age_0_18 + df$age_19_25
+quantiles <- get_quantiles(df$age_below_25)
+
 df %>%
   ggplot(aes(x = state, y = age_below_25)) +
   geom_point(stat="identity") +
@@ -445,9 +458,7 @@ df %>%
        x = "State",
        color = "Legend") +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
-  geom_hline(aes(yintercept=mean(df$age_below_25), color='Mean')) +
-  geom_hline(aes(yintercept=quantile(df$age_below_25, 0.25), color='1st Quartile')) +
-  geom_hline(aes(yintercept=quantile(df$age_below_25, 0.75), color='3rd Quartile'))
+  geom_hline(data = quantiles, aes(yintercept = value, color = name))
 ```
 
 As we can see from the above, all of the states have similar proportions of their population < 25, with the interquartile distance being relatively small, indicating a generally uniform national age distribution. 
@@ -497,6 +508,7 @@ ggpairs(df_race[,-1])
 As we can see from the above scatterplot matrix, in general there are generally weak relationships between case rate per 100,000 and percentage of the particular racial group per state, in fact the majority show a negative relationship. Nevertheless, we can observe that the strongest absolute value for relationship is positive, and demonstrated by the percentage of black population per state, correlating with case rate with an r of ~0.3. We can visualize the distribution of black people by percentage of state population using a bar graph:
 
 ```{r warning=FALSE, fig.height = 4, message=FALSE}
+quantiles <- get_quantiles(df$black_pop)
 df %>%
   ggplot(aes(x = state, y = black_pop)) +
   geom_bar(stat="identity") +
@@ -505,9 +517,7 @@ df %>%
        x = "State",
        color = "Legend") +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
-  geom_hline(aes(yintercept=mean(df$black_pop), color='Mean')) +
-  geom_hline(aes(yintercept=quantile(df$black_pop, 0.25), color='1st Quartile')) +
-  geom_hline(aes(yintercept=quantile(df$black_pop, 0.75), color='3rd Quartile'))
+  geom_hline(data = quantiles, aes(yintercept = value, color = name))
 ```
 
 As we can observe from the above graph, there is a wide variance in the percentage of black population by state. Nevertheless, as linear regression does not require normality of data as an assumption, we can continue to utilize this variable.  
@@ -597,6 +607,7 @@ ggpairs(df_dist[,-1])
 All the mobility data are highly collinear with one another, so for the model, we will select "mob_TS" (i.e. change in mobility at transit stations) as it has the highest correlation with case rate, with an r of 0.237. We can visualize the changes in mobility by State to see if there are any interesting trends worth exploring:
 
 ```{r warning=FALSE, fig.height = 4, message=FALSE}
+quantiles <- get_quantiles(df$mob_TS)
 df %>%
   ggplot(aes(x = state, y = mob_TS)) +
   geom_point(stat="identity") +
@@ -605,9 +616,7 @@ df %>%
        x = "State",
        color = "Legend") +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
-  geom_hline(aes(yintercept=mean(df$mob_TS), color='Mean')) +
-  geom_hline(aes(yintercept=quantile(df$mob_TS, 0.25), color='1st Quartile')) +
-  geom_hline(aes(yintercept=quantile(df$mob_TS, 0.75), color='3rd Quartile'))
+  geom_hline(data = quantiles, aes(yintercept = value, color = name))
 ```
 
 As expected, the majority of states have witnessed a decline in mobility at their respective transit centers. In general, the data is congruent with expectations, for example the District of Columbia has seen the largest decrease in transit station mobility at >70%. Interestingly, there are 3 states that have seen increases, with Wyoming seeing a substantial increase in transit station mobility. Nevertheless, these trends are unlikely to affect our further analysis using the variable in our model.
