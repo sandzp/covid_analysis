@@ -383,8 +383,6 @@ Our estimate for $\beta_1$ (the coefficient of our variable of interest) is $\ti
 
 According to Model 1, enforcement of mask use policies would be expected to reduce the case rate by ~990.5 cases/100,000 or by ~1%, *ceteris paribus*. Given that the median COVID-19 case rate among US states is 2,633 per 100,000, the coefficient estimate has practical significance, with an effect size corresponding to a reduction of 37.6% of the median case rate among states.  
 
-\newpage
-
 ## Model 2
 
 ### Objective
@@ -779,6 +777,8 @@ $$
 \end{aligned}
 $$
 
+\newpage
+
 ### Model summary
 
 ```{r model_3 summary, results = "asis", warning=FALSE}
@@ -819,8 +819,6 @@ According to Model 3, states that have adopted mandatory mask use would expect t
 ## CLM Assumptions & Limitations
 
 In theory, our EDA process should have helped us choose the most optimal variables (and subsequent transformations) to use in our models. Nevertheless, we must assess how good our models are at explaining the causal relationship between the dependent variable (case rate per 100,000), and our primary independent variable of interest (state implementation of a mask mandate) or whether they require further modification and optimization. As such we will consider whether they meet the 5 key assumptions required for the Classic Linear Model (CLM). Moreover, we can also utilize CLM assessment techniques to demonstrate how our iterative model building process has optimized our causal model.   
-
-\newpage
 
 ### 1) Independent & Identically Distributed Random Variables
 
@@ -1175,7 +1173,8 @@ We prove our omitted variable bias prediction in this instance, by using externa
 model_climate <- lm(case_rate ~ mask_use + temp_wint, data = df2)
 
 stargazer(base_model, model_climate, 
-          title = "Omitted Variable Bias Comparison: Average Winter Temperature", header = FALSE)
+          title = "Omitted Variable Bias Comparison: Average Winter Temperature", 
+          header = FALSE)
 ```
 
 Interestingly, here the omitted variable bias is actually opposite to what we predicted (i.e. it is negative):
