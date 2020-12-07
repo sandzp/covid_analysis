@@ -1,52 +1,52 @@
-state,state_quarantine,political_party,temp
-Alabama,0,1,62.8
-Alaska,1,1,26.6
-Arizona,0,1,60.3
-Arkansas,0,1,60.4
-California,0,0,59.4
-Colorado,0,0,45.1
-Connecticut,0,0,49
-Delaware,1,0,55.3
-District of Columbia,0,0,55
-Florida,0,1,70.7
-Georgia,0,1,63.5
-Hawaii,1,0,70
-Idaho,1,1,44.4
-Illinois,0,0,51.8
-Indiana,0,1,51.7
-Iowa,0,1,47.8
-Kansas,0,0,54.3
-Kentucky,1,0,55.6
-Louisiana,0,0,66.4
-Maine,1,0,41
-Maryland,0,1,54.2
-Massachusetts,1,1,47.9
-Michigan,0,0,44.4
-Minnesota,0,0,41.2
-Mississippi,0,1,63.4
-Missouri,0,1,54.5
-Montana,1,0,42.7
-Nebraska,0,1,48.8
-Nevada,0,0,49.9
-New Hampshire,0,1,43.8
-New Jersey,0,0,52.7
-New Mexico,1,0,53.4
-New York,0,0,45.4
-North Carolina,0,0,59
-North Dakota,0,1,40.4
-Ohio,0,1,50.7
-Oklahoma,0,1,59.6
-Oregon,0,0,48.4
-Pennsylvania,0,0,48.8
-Rhode Island,1,0,50.1
-South Carolina,0,1,62.4
-South Dakota,0,1,45.2
-Tennessee,0,1,57.6
-Texas,0,1,64.8
-Utah,1,1,48.6
-Vermont,1,1,42.9
-Virginia,0,0,55.1
-Washington,0,0,48.3
-West Virginia,0,1,51.8
-Wisconsin,0,0,43.1
-Wyoming,1,1,42
+state,state_quarantine,political_party,temp,temp_wint
+Alabama,0,1,62.8,46.5
+Alaska,1,1,26.6,2.6
+Arizona,0,1,60.3,43.6
+Arkansas,0,1,60.4,41.5
+California,0,0,59.4,46.2
+Colorado,0,0,45.1,25.8
+Connecticut,0,0,49,28.5
+Delaware,1,0,55.3,36.1
+District of Columbia,0,0,55,38
+Florida,0,1,70.7,59.4
+Georgia,0,1,63.5,47.8
+Hawaii,1,0,70,67.4
+Idaho,1,1,44.4,25.4
+Illinois,0,0,51.8,28.3
+Indiana,0,1,51.7,29.4
+Iowa,0,1,47.8,21.7
+Kansas,0,0,54.3,31.9
+Kentucky,1,0,55.6,35.9
+Louisiana,0,0,66.4,50.9
+Maine,1,0,41,16.8
+Maryland,0,1,54.2,34.7
+Massachusetts,1,1,47.9,27.4
+Michigan,0,0,44.4,21.7
+Minnesota,0,0,41.2,12.4
+Mississippi,0,1,63.4,46.7
+Missouri,0,1,54.5,32.3
+Montana,1,0,42.7,21.2
+Nebraska,0,1,48.8,25.7
+Nevada,0,0,49.9,32.2
+New Hampshire,0,1,43.8,21.1
+New Jersey,0,0,52.7,33
+New Mexico,1,0,53.4,36.1
+New York,0,0,45.4,23.3
+North Carolina,0,0,59,42.1
+North Dakota,0,1,40.4,12.2
+Ohio,0,1,50.7,29.5
+Oklahoma,0,1,59.6,39.1
+Oregon,0,0,48.4,34
+Pennsylvania,0,0,48.8,28.4
+Rhode Island,1,0,50.1,31.4
+South Carolina,0,1,62.4,46.1
+South Dakota,0,1,45.2,19.5
+Tennessee,0,1,57.6,39.1
+Texas,0,1,64.8,47.9
+Utah,1,1,48.6,28.2
+Vermont,1,1,42.9,19.4
+Virginia,0,0,55.1,36.8
+Washington,0,0,48.3,33
+West Virginia,0,1,51.8,32.8
+Wisconsin,0,0,43.1,17.2
+Wyoming,1,1,42,21.2
