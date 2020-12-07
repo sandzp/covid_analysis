@@ -20,6 +20,8 @@ library(knitr)
 library(GGally)
 library(naniar)
 library(gridExtra)
+library(xtable)
+options(xtable.comment = FALSE)
 ```
 
 ```{r data schema, include = FALSE}
@@ -143,7 +145,9 @@ The Google Human mobility data is compiled daily by Google and includes informat
 
 There are a total of 6 data types in the dataset: character, numeric, integer, factor, dates, and logical. Any variable with “date” in the name is read in as a date. Logical variables include mask_use, mask_legal, and maskbus_use. Variables read in as factors include gov_party, and tests_positive. The only character variable is the state name. Finally, all other variables are read in as either numeric or an integer. All numeric and integer values are real and nonnegative.
 
-Some of the data was missing from the initial table and was manually populated using an external website$^1$ so we could calculate the number of days of shelter in place. Although some of the states had not yet ended their shelter in place policies, we chose 10/30/2020 as the end date as the cutoff date for our analysis. The table below shows the data populated manually (empty cells were left as is):
+Some of the data was missing from the initial table and was manually populated using an external website$^1$ so we could calculate the number of days of shelter in place. Although some of the states had not yet ended their shelter in place policies, we chose 10/30/2020 as the end date as the cutoff date for our analysis. The table on the next page shows the data populated manually (empty cells were left as is):
+
+\newpage
 
 | State       | beg_shelter_date | end_shelter_date |
 |-------------|------------------|------------------|
@@ -196,7 +200,7 @@ First, we assessed the data provided for the variables of interest. This specifi
 
 For the main outcome variable, we can see that there are no missing values in the columns of interest:
 
-```{r fig.height = 3, fig.width = 3}
+```{r fig.height = 3, fig.width = 5}
 vis_miss(df %>% select(case_rate)) + theme(axis.text.x = element_text(angle = 0, hjust = 0.5))
 ```
 
@@ -208,22 +212,20 @@ summary(df_mod1$case_rate)
 Together with the summary statistics presented in the previous section, we can further isolate the case rate variable and visualize its distribution:
 
 ```{r warning=FALSE, fig.height = 4, message=FALSE}
-hist_case_rate <- df %>%
+df %>%
   ggplot(aes(x = case_rate)) +
   geom_histogram(bins = 50) +
   labs(title = "Histogram of Case Rate per 100,000",
        y = "Count",
        x = "Case Rate per 100,000")
-
-hist_case_rate
 ```
 
 From the above histogram, we can see that the case rate is approximately normally distributed, though there are some states that are obvious outliers, with very high and very low case rates per 100,000.
 
 Next, we can visually assess the case rate across the 50 states by plotting a bar graph:
 
-```{r warning=FALSE, fig.height = 6, message=FALSE}
-hist_state_rate <- df %>%
+```{r warning=FALSE, fig.height = 4, message=FALSE}
+df %>%
   ggplot(aes(x = state, y = case_rate)) +
   geom_bar(stat="identity") +
   labs(title = "Case Rate Across 50 States",
@@ -234,8 +236,6 @@ hist_state_rate <- df %>%
   geom_hline(aes(yintercept=mean(df$case_rate), color='Mean')) +
   geom_hline(aes(yintercept=quantile(df$case_rate, 0.25), color='1st Quartile')) +
   geom_hline(aes(yintercept=quantile(df$case_rate, 0.75), color='3rd Quartile'))
-
-hist_state_rate
 ```
 
 We can see that there are a substantial number of states with case rates below the mean (2,749), and a few below the 1st (2,040) and 3rd (3,516) quartiles.
@@ -246,9 +246,11 @@ Next, we look at the correlation between case rate and our causal variables of i
 
 Before we conduct a comparison between the dependent and main independent variable, we must ensure that there are no spurious or missing data in the mandatory mask policy category. As we can see from below, there is no missing data for this variable:
 
-```{r fig.height = 3, fig.width = 3}
+```{r fig.height = 3, fig.width = 5}
 vis_miss(df %>% select(mask_use)) + theme(axis.text.x = element_text(angle = 0, hjust = 0.5))
 ```
+
+\newpage
 
 As the mask use policy variable is binary, we only need to ensure that there are 51 observations (51 as the District of Columbia is included):
 
@@ -260,25 +262,23 @@ We can also see that 1/3 of all the states surveyed did not have a mask use poli
 
 Based on our hypothesis, implementation of a statewide mask-use policy should lead to a decrease in the number of COVID cases by preventing their spread. From the box plot comparison below we can visually discern an apparent positive correlation between mask use policy categories and case rates. This broadly falls in line with our hypothesis, as we can see that the mean case rate in the 'True' (i.e. enforced mask policy) category (2,473/100,000) is substantially lower than that of the 'False' (i.e. no enforced mask policy) category (3,303/100,000):
 
-```{r warning=FALSE, message=FALSE, fig.height = 4, fig.width = 5}
-
-
+```{r warning=FALSE, message=FALSE, fig.height = 4}
 df_mod1 %>%
   ggplot(aes(y = case_rate, x = mask_use)) +
   geom_boxplot() +
   labs(
     title = "Mandatory Mask Use vs Case Rate by State",
     x = "Mandatory Mask Use",
-    y = "Case Rate per 100,000"
-  ) 
-
+    y = "Case Rate per 100,000") 
 ```
+
+\newpage
 
 #### Case Rate vs. Test Rate
 
 First, we assess for any potential missing data for the test rate variable. As we can see from below, there is none:
 
-```{r fig.height = 3, fig.width = 3}
+```{r fig.height = 3, fig.width = 5}
 vis_miss(df %>% select(test_rate)) + theme(axis.text.x = element_text(angle = 0, hjust = 0.5))
 ```
 
@@ -291,21 +291,19 @@ summary(df_mod1$test_rate)
 Together with the summary statistics presented previously, we can visualize the distribution of test rates using a histogram:
 
 ```{r warning=FALSE, fig.height = 4, message=FALSE}
-hist_test_rate <- df %>%
+df %>%
   ggplot(aes(x = test_rate)) +
   geom_histogram(bins = 50) +
   labs(title = "Histogram of Test Rate per 100,000",
        y = "Count",
        x = "Test Rate per 100,000")
-
-hist_test_rate
 ```
 
 From the above histogram, we can see that there is a definite positive skew of the data, meaning that the "worst performing" states had test rates were approximately 1/3 of the "top performing" states in terms of tests administered per 100,000 of population. This is an interesting observation, and warrants a comparison between the test rates and case rates to see if there is any potential relationship, which we will next perform.
 
 An important control variable in our causal models is the test rate per 100,000 of the population: We hypothesize that the more tests are performed, the higher the overall case rate. This is a contentious issue due to its potential for becoming politicized and utilized as a means to explain a lack of governmental control of COVID-19. Nevertheless, the assumption that more tests result in a higher number of cases is not as straightforward as some suggest$^2$. As such we believe that including the test rate per 100,000 is an important control variable in our model.    
 
-```{r}
+```{r warning=FALSE, fig.height = 4, message=FALSE}
 df_mod1 %>%
   ggplot(aes(y = case_rate, x = test_rate)) +
   geom_point() +
@@ -313,8 +311,7 @@ df_mod1 %>%
   labs(
     title = "Case Rate vs Test Rate by State",
     x = "Test Rate per 100,000",
-    y = "Case Rate per 100,000"
-  )
+    y = "Case Rate per 100,000")
 ```
 
 The above diagram visualizes the relationship between test and case rates per 100,000. In line with the more simple hypothesis, there is a slight positive relationship (as evidenced by the slope of the line) between the test rate and case rate. Due to the prior reasoning and demonstrable positive relationship between the variables, we choose to include it in our model. 
@@ -344,9 +341,10 @@ $$
 ```{r model_1 summary, results = "asis", warning = FALSE}
 model_1 <- lm(case_rate ~ mask_use + test_rate, data = df)
 std_errors = sqrt(diag(vcovHC(model_1)))
-stargazer(model_1, se = std_errors, title = "Model 1 Summary")
+stargazer(model_1, se = std_errors, title = "Model 1 Summary", header = FALSE)
 ```
 
+\newpage
 
 ### Overall model significance (F-test)
 
@@ -377,6 +375,8 @@ Our estimate for $\beta_1$ (the coefficient of our variable of interest) is $\ti
 
 According to Model 1, enforcement of mask use policies would be expected to reduce the case rate by ~990.5 cases/100,000 or by ~1%, *ceteris paribus*. Given that the median COVID-19 case rate among US states is 2,633 per 100,000, the coefficient estimate has practical significance, with an effect size corresponding to a reduction of 37.6% of the median case rate among states.  
 
+\newpage
+
 ## Model 2
 
 ### Objective
@@ -394,17 +394,13 @@ Model selection will be based upon our EDA. For each one of these categories, we
 ```{r initialize model 2}
 df_race <- df %>%
   select(state, case_rate, white_pop, black_pop, hispanic_pop, other_pop)
-
 df_socio <- df %>%
   select(state, case_rate, homeless_total, poverty_rate, household_income, 
          life_expectancy, unemployment_rate, black_pop)
-
 df_dist <- df %>%
   select(state, case_rate, `mob_R&R`, `mob_G&P`, mob_P, mob_TS, mob_WP, mob_RES)
-
 df_age <- df %>%
   select(state, case_rate, age_0_18, age_19_25, age_26_34, age_35_54, age_55_64, age_65)
-
 df_socio$life_expectancy <- df_socio$life_expectancy/10
 ```
 
@@ -416,7 +412,7 @@ In order to select the most appropriate age groups (i.e. % of population of a pa
 
 First we ensure that there is no missing data in any of the age groups. The below figure confirms that there is no missing data:
 
-```{r fig.height = 4, fig.width = 4}
+```{r fig.height = 3, fig.width = 5}
 df_age %>% 
   vis_miss() + 
   theme(axis.text.x = element_text(angle = 90))
@@ -440,12 +436,10 @@ From the above scatterplot matrix we can see that the age groups that have highe
 
 First we can plot a scatterplot to see what percentage of the population <25 exists in each state:
 
-```{r warning=FALSE, fig.height = 6, message=FALSE}
+```{r warning=FALSE, fig.height = 4, message=FALSE}
 df_age$age_below_25 = df$age_0_18 + df$age_19_25
-
 df$age_below_25 = df$age_0_18 + df$age_19_25
-
-hist_state_age <- df %>%
+df %>%
   ggplot(aes(x = state, y = age_below_25)) +
   geom_point(stat="identity") +
   ylim(0, 45) +
@@ -457,15 +451,13 @@ hist_state_age <- df %>%
   geom_hline(aes(yintercept=mean(df$age_below_25), color='Mean')) +
   geom_hline(aes(yintercept=quantile(df$age_below_25, 0.25), color='1st Quartile')) +
   geom_hline(aes(yintercept=quantile(df$age_below_25, 0.75), color='3rd Quartile'))
-
-hist_state_age
 ```
 
 As we can see from the above, all of the states have similar proportions of their population < 25, with the interquartile distance being relatively small. 
 
 We can subsequently move on to the comparison between our new 'age <25' category and our dependent variable:
 
-```{r message=FALSE}
+```{r warning=FALSE, fig.height = 4, message=FALSE}
 df_age %>%
   select(case_rate, age_below_25) %>%
   ggplot(aes(y = case_rate, x = age_below_25)) + 
@@ -474,8 +466,7 @@ df_age %>%
   labs(
     title = "Case Rate vs Percent Age Below 25",
     x = "Percent Age Below 25",
-    y = "Case Rate per 100,000"
-  )
+    y = "Case Rate per 100,000")
 ```
 
 As we can see from the above, there is a definite positive relationship between the percent of people in the <25 age category and the case rate per 100,000. As such, it is unlikely that further transformation to this variable is required, and we can utilize it as a representation of an age demographic factor in our causal model moving forward. 
@@ -486,10 +477,10 @@ It is well known and documented that COVID-19 has affected different ethnic grou
 
 Again, we begin by confirming the data has been recorded properly and that there are no missing values:
 
-```{r fig.height = 4, fig.width = 4}
+```{r fig.height = 3, fig.width = 5}
 df_race[,c(-1,-2)] %>% 
   vis_miss() + 
-  theme(axis.text.x = element_text(angle = 90))
+  theme(axis.text.x = element_text(angle = 0, hjust = 0.5))
 ```
 
 Next we ensure there is no spurious data contained in any of the race categories. From below, we can see that all the categories look to be well behaved in terms of the data they contain:
@@ -508,8 +499,8 @@ ggpairs(df_race[,-1])
 
 As we can see from the above scatterplot matrix, in general there are generally weak relationships between case rate per 100,000 and percentage of the particular racial group per state, in fact the majority show a negative relationship. Nevertheless, we can observe that the strongest absolute value for relationship is positive, and demonstrated by the percentage of black population per state, correlating with case rate with an r = ~0.3. We can visualize the distribution of black people by percentage of state population using a bar graph:
 
-```{r warning=FALSE, fig.height = 6, message=FALSE}
-hist_state_black <- df %>%
+```{r warning=FALSE, fig.height = 4, message=FALSE}
+df %>%
   ggplot(aes(x = state, y = black_pop)) +
   geom_bar(stat="identity") +
   labs(title = "% Black Population",
@@ -520,8 +511,6 @@ hist_state_black <- df %>%
   geom_hline(aes(yintercept=mean(df$black_pop), color='Mean')) +
   geom_hline(aes(yintercept=quantile(df$black_pop, 0.25), color='1st Quartile')) +
   geom_hline(aes(yintercept=quantile(df$black_pop, 0.75), color='3rd Quartile'))
-
-hist_state_black
 ```
 
 As we can observe from the above graph, there is a wide variance in the percentage of black population by state. 
@@ -530,7 +519,7 @@ As we mentioned in the introduction, race may potentially act as a proxy for soc
 
 First we assess for missing data in the socioeconomic categories we will be assessing:
 
-```{r  fig.height = 4, fig.width = 4}
+```{r fig.height = 3, fig.width = 5}
 df_socio[,c(-1,-2)] %>% 
   vis_miss() + 
   theme(axis.text.x = element_text(angle = 90))
@@ -556,7 +545,7 @@ From the pairs plot above, we see that poverty rate and household income have th
 
 We explore the bivariate relationship between case rate and percentage of black population below: 
 
-```{r message=FALSE}
+```{r warning=FALSE, fig.height = 4, message=FALSE}
 df_race %>%
   ggplot(aes(y = case_rate, x = black_pop)) +
   geom_point() +
@@ -564,13 +553,12 @@ df_race %>%
   labs(
     title = "Case Rate vs % Black by state",
     x = "% Black",
-    y = "Case Rate per 100,000"
-  )
+    y = "Case Rate per 100,000")
 ```
 
 The untransformed relationship shows a rather weak positive correlation with case rate. Moreover, the points seem to become further spaced as the value of X increases. Disregarding the regression line, we can observe a somewhat non-linear relationship between the data points. As such, this variable could benefit from transformation. Because some of our black population values are equal to 0, a log transformation would not apply. To avoid this, each value is increased by 1 prior to the log transform:
 
-```{r message=FALSE}
+```{r warning=FALSE, fig.height = 4, message=FALSE}
 df_race %>%
   ggplot(aes(y = case_rate, x = log1p(black_pop))) +
   geom_point() +
@@ -578,8 +566,7 @@ df_race %>%
   labs(
     title = "Case Rate vs log plus 1 (% Black by state)",
     x = "log plus 1(% Black)",
-    y = "Case Rate per 100,000"
-  )
+    y = "Case Rate per 100,000")
 ```
 
 The graph above demonstrates that a transformation distributes the points more evenly along the X axis, making the potential linear relationship more discernable.
@@ -590,7 +577,7 @@ The Google Human mobility data includes information on the amount of time spent 
 
 We can see that there are no missing data points in this category:
 
-```{r summary stats social distancing, fig.height = 4, fig.width = 4}
+```{r fig.height = 3, fig.width = 5}
 df_dist[,c(-1,-2)] %>% 
   vis_miss() + 
   theme(axis.text.x = element_text(angle = 90))
@@ -612,8 +599,8 @@ ggpairs(df_dist[,-1])
 
 All the mobility data are highly collinear with one another, so for the model, we will select mob_TS (i.e. change in mobility at transit stations) as it has the highest correlation with case rate, with an r of 0.237. We can visualize the changes in mobility by State to see if there are any interesting trends worth exploring:
 
-```{r warning=FALSE, fig.height = 6, message=FALSE}
-hist_state_mob <- df %>%
+```{r warning=FALSE, fig.height = 4, message=FALSE}
+df %>%
   ggplot(aes(x = state, y = mob_TS)) +
   geom_point(stat="identity") +
   labs(title = "% Change in Mobility",
@@ -624,15 +611,13 @@ hist_state_mob <- df %>%
   geom_hline(aes(yintercept=mean(df$mob_TS), color='Mean')) +
   geom_hline(aes(yintercept=quantile(df$mob_TS, 0.25), color='1st Quartile')) +
   geom_hline(aes(yintercept=quantile(df$mob_TS, 0.75), color='3rd Quartile'))
-
-hist_state_mob
 ```
 
 As expected, the majority of states have witnessed a decline in mobility at their respective transit centers. In general, the data is congruent with expectations, for example the District of Columbia has seen the largest decrease in transit station mobility at >70%. Interestingly, there are 3 states that have seen increases, with Wyoming seeing a substantial increase in transit station mobility. Nevertheless, these trends are unlikely to affect our further analysis using the variable in our model.
 
 The figure below shows the bivariate relationship between case rate variable and the change in mobility at transit stations:
 
-```{r warning=FALSE, fig.height = 6, message=FALSE}
+```{r warning=FALSE, fig.height = 4, message=FALSE}
 df_dist %>%
   ggplot(aes(y = case_rate, x = mob_TS)) +
   geom_point() +
@@ -640,8 +625,7 @@ df_dist %>%
   labs(
     title = "Relationship Between Mobility: Transit Stations and Case Rate by State",
     x = "Percentage Change in Mobility: Transit Stations",
-    y = "Case Rate per 100,000"
-  )
+    y = "Case Rate per 100,000")
 ```
 
 From the above figure, we can discern a clear positive relationship between the X and Y variables. As the points are approximately evenly distributed within the axes, there is no clear and explainable transformation that can be applied. The variable will be left as is for the second model.
@@ -673,11 +657,9 @@ model_2 <- lm(case_rate ~ mask_use + test_rate + age_below_25 +
                 log(black_pop + 1) + mob_TS, data = df)
 std_errors = list(
   sqrt(diag(vcovHC(model_1))),
-  sqrt(diag(vcovHC(model_2)))
-)
-stargazer(model_1, model_2, se = std_errors, title = "Model 2 Summary")
+  sqrt(diag(vcovHC(model_2))))
+stargazer(model_1, model_2, se = std_errors, title = "Model 2 Summary", header = FALSE)
 ```
-
 
 ### Overall model significance (F-test)
 
@@ -726,7 +708,7 @@ From the summary statistics, we can see that the numbers mostly make sense. Ther
 
 First we can assess the integrity of our data, and confirm that there are no missing datapoints:
 
-```{r, fig.height = 4, fig.width = 4}
+```{r fig.height = 3, fig.width = 5}
 df_mod3[,c(-1,-2)] %>% 
   vis_miss() + 
   theme(axis.text.x = element_text(angle = 90))
@@ -754,10 +736,9 @@ ggpairs(df_mod3[,-1], upper = list(combo = "points"))
 
 As we cannot calculate a Pearson r correlation score to quantify the relationship between a categorical variable and a continuous variable, instead we can conduct a point biserial test to assess for the relationship between the legal enforcement of mask use and case rate variables:
 
-```{r}
+```{r warning=FALSE, fig.height = 4, message=FALSE}
 df_mod3 <- df_mod3 %>% 
   mutate(binary_legal = as.integer(as.logical(mask_legal)))
-
 cor.test(df_mod3$case_rate, df_mod3$binary_legal)
 ```
 
@@ -797,8 +778,7 @@ model_3 <- lm(case_rate ~ mask_use + test_rate + age_below_25
 std_errors = list(
   sqrt(diag(vcovHC(model_1))),
   sqrt(diag(vcovHC(model_2))),
-  sqrt(diag(vcovHC(model_3)))
-)
+  sqrt(diag(vcovHC(model_3))))
 stargazer(model_1, model_2, model_3, type = "text", se = std_errors, 
           title = "Model 3 Summary")
 ```
@@ -849,12 +829,11 @@ The linear regression model assumes a straight-line relationship between the pre
 
 **Residuals vs. Fitted**
 
-```{r, fig.height=3}
+```{r, fig.height=4}
 
 model_1_residuals = resid(model_1)
 model_2_residuals = resid(model_2)
 model_3_residuals = resid(model_3)
-
 model_1_predicteds = predict(model_1)
 model_2_predicteds = predict(model_2)
 model_3_predicteds = predict(model_3)
@@ -866,8 +845,7 @@ plot_1_predicts <- model_1 %>%
   labs(
     title = "Model 1: Residuals vs. Fitted",
     x = "Fitted Values",
-    y = "Residual Values"
-  )
+    y = "Residual Values")
 
 plot_2_predicts <- model_2 %>%
   ggplot(aes(model_2_predicteds, model_2_residuals)) + 
@@ -876,8 +854,7 @@ plot_2_predicts <- model_2 %>%
   labs(
     title = "Model 2: Residuals vs. Fitted",
     x = "Fitted Values",
-    y = "Residual Values"
-  )
+    y = "Residual Values")
 
 plot_3_predicts <- model_3 %>%
   ggplot(aes(model_3_predicteds, model_3_residuals)) + 
@@ -886,8 +863,7 @@ plot_3_predicts <- model_3 %>%
   labs(
     title = "Model 3: Residuals vs. Fitted",
     x = "Fitted Values",
-    y = "Residual Values"
-  )
+    y = "Residual Values")
 ```
 
 Looking at the fitted vs. residuals plot for Model 1 (below), we can see that the residuals demonstrate an element of non-linearity (evidenced especially at fitted values > 3,500), indicating problems with the model:
@@ -961,8 +937,7 @@ plot_1_sl <- model_1 %>%
   labs(
     title = "Scale-Location Plot: Model 1",
     x = "Fitted Values",
-    y = "sqrt(|Standardized Residuals|)"
-  )
+    y = "sqrt(|Standardized Residuals|)")
 
 plot_2_sl <- model_2 %>%  
   ggplot(aes(x = model_2_predicteds, 
@@ -972,8 +947,7 @@ plot_2_sl <- model_2 %>%
   labs(
     title = "Scale-Location Plot: Model 2",
     x = "Fitted Values",
-    y = "sqrt(|Standardized Residuals|)"
-  )
+    y = "sqrt(|Standardized Residuals|)")
 
 plot_3_sl <- model_3 %>%  
   ggplot(aes(x = model_3_predicteds, 
@@ -982,8 +956,7 @@ plot_3_sl <- model_3 %>%
   stat_smooth(color="green", se=FALSE) +
   labs(
     title = "Scale-Location Plot: Model 3",    x = "Fitted Values",
-    y = "sqrt(|Standardized Residuals|)"
-  )
+    y = "sqrt(|Standardized Residuals|)")
 ```
 
 In Model 1, it seems like there are a greater concentration of points below the line, which demonstrates evident curvature at the lower and upper X-scale, with a greater upward slope at Fitted values > 3500. It is difficult to test for heteroscedasticity in this plot:
@@ -1031,8 +1004,7 @@ mod_1_hist <- model_1 %>%
   labs(
     title = "Model 1: Distribution of Residuals",
     x = "Residual Values",
-    y = "Count"
-  )
+    y = "Count")
   
 mod_1_qq <- model_1 %>% 
   ggplot(aes(sample = model_1_residuals)) + 
@@ -1040,8 +1012,7 @@ mod_1_qq <- model_1 %>%
   labs(
     title = "Model 1: Normal-QQ Plot",
     x = "Theoretical Quantiles",
-    y = "Standardized Residuals"
-  )
+    y = "Standardized Residuals")
 
 mod_2_hist <- model_2 %>% 
   ggplot(aes(x = model_2_residuals)) + 
@@ -1049,8 +1020,7 @@ mod_2_hist <- model_2 %>%
   labs(
     title = "Model 2: Distribution of Residuals",
     x = "Residual Values",
-    y = "Count"
-  )
+    y = "Count")
   
 mod_2_qq <- model_2 %>% 
   ggplot(aes(sample = model_2_residuals)) + 
@@ -1058,8 +1028,7 @@ mod_2_qq <- model_2 %>%
   labs(
     title = "Model 2: Normal-QQ Plot",
     x = "Theoretical Quantiles",
-    y = "Standardized Residuals"
-  )
+    y = "Standardized Residuals")
 
 mod_3_hist <- model_3 %>% 
   ggplot(aes(x = model_3_residuals)) + 
@@ -1067,8 +1036,7 @@ mod_3_hist <- model_3 %>%
   labs(
     title = "Model 3: Distribution of Residuals",
     x = "Residual Values",
-    y = "Count"
-  )
+    y = "Count")
 
 mod_3_qq <- model_3 %>% 
   ggplot(aes(sample = model_3_residuals)) + 
@@ -1076,8 +1044,7 @@ mod_3_qq <- model_3 %>%
   labs(
     title = "Model 3: Normal-QQ Plot",
     x = "Theoretical Quantiles",
-    y = "Standardized Residuals"
-  )
+    y = "Standardized Residuals")
 ```
 
 ```{r}
@@ -1096,10 +1063,7 @@ In comparison, when looking at the Q-Q plot it appears that the residuals are mo
 ## Omitted Variables Discussion
 
 ```{r}
-quar <- read.csv("ovb.csv")
-
-quar <- data.frame(quar)
-
+quar <- data.frame(read.csv("ovb.csv"))
 df2 <- merge(df, quar, by="state")
 ```
 
@@ -1164,7 +1128,8 @@ We prove our omitted variable bias predictions in this instance, by using a prox
 base_model <- lm(case_rate ~ mask_use, data = df2)
 model_quar <- lm(case_rate ~ mask_use + state_quarantine, data = df2)
 
-stargazer(base_model, model_quar, type = "latex", title = "Omitted Variable Bias Comparison: Travel Restrictions")
+stargazer(base_model, model_quar, type = "latex", title = "Omitted Variable Bias Comparison: Travel Restrictions",
+          header = FALSE)
 ```
 
 As we can see here, the overall effect of including quarantine information upon our variables of interest is concordant with predictions, and we observe an increase (i.e. moving towards 0) in the overall coefficient value for our independent variable of interest (mask use policies) meaning that lesser effect is attributed to it in a more 'true' system. We can further calculate and prove that our predictions of negative omitted variable bias were correct by subtracting the value of the coefficient of interest in the unbiased estmation (i.e. $\hat{\beta_1}$) from that of the 'false' model (i.e. $\tilde{\beta_1}$):
@@ -1190,7 +1155,7 @@ We prove our omitted variable bias prediction in this instance, by using externa
 model_climate <- lm(case_rate ~ mask_use + temp, data = df2)
 
 stargazer(base_model, model_climate, 
-          title = "Omitted Variable Bias Comparison: Average Annual Temperature")
+          title = "Omitted Variable Bias Comparison: Average Annual Temperature", header = FALSE)
 ```
 
 As we can see here, the overall effect of including average annual state temperature information upon our variables is concordant with predictions, and we observe an increase (i.e. moving towards 0) in the overall coefficient value for our independent variable of interest (mask use policies) meaning that lesser effect is attributed to it in a more 'true' system. We can further calculate and prove that our predictions of negative omitted variable bias were correct by subtracting the value of the coefficient of interest in the unbiased estmation (i.e. $\hat{\beta_1}$) from that of the 'false' model (i.e. $\tilde{\beta_1}$): 
@@ -1216,7 +1181,7 @@ We can actually calculate the omitted variable bias in this instance, by using t
 model_party <- lm(case_rate ~ mask_use + political_party, data = df2)
 
 stargazer(base_model, model_party, 
-          title = "Omitted Variable Bias Comparison: Republican Majority")
+          title = "Omitted Variable Bias Comparison: Republican Majority", header = FALSE)
 ```
 
 As we can see here, the overall effect upon the variables of interest caused by including information about a state's political inclination is concordant with predictions. We observe an increase (i.e. moving towards 0) in the overall coefficient value for our independent variable of interest (mask use policies) meaning that lesser effect is attributed to it in a more 'true' system. We can further calculate and prove that our predictions of negative omitted variable bias were correct by subtracting the value of the coefficient of interest in the unbiased estmation (i.e. $\hat{\beta_1}$) from that of the 'false' model (i.e. $\tilde{\beta_1}$):
