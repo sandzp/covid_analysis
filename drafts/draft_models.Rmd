@@ -88,7 +88,7 @@ schema <- cols(
 
 ```{r csv import, warning=FALSE}
 df <- read_delim(
-  file = "clean_covid_19_LB_version.csv",
+  file = "~/covid_analysis/covid_19_clean.csv",
   delim = ";",
   col_names = TRUE,
   col_types = schema,
