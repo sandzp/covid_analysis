@@ -4,6 +4,7 @@ author: "Lucas Brossi, Amar Chatterjee, Daniel Chow, Sandip Panesar"
 date: "12/08/2020"
 output:
   pdf_document: default
+  word_document: default
   html_document:
     df_print: paged
 ---
@@ -113,7 +114,7 @@ A relatively simple way to control spread of this respiratory pathogen is with p
 
 On April 3, 2020, the Center for Disease Control (CDC) issued an official recommendation advising all persons to wear a cloth face mask or covering in public to help slow the spread of the coronavirus. Many states went on to enact a policy requiring people to wear face masks at all times in public settings, however some did not comply, despite mounting evidence in favor of such an order.
 
-![](images/WearMask.png)
+![](images/WearMask_3.png){width=85%}
 
 Despite all of these recommendations, the use of face masks has become politicized and undermined by large swaths of the country’s population. Conflicting messages and spread of misinformation has resulted in a loss of credibility and trust in the CDC. As such, some states, counties, districts and individuals continue to ignore scientific advice by neglecting to enforce, or abide by mask use mandates. This may be one of the reasons behind the seemingly unimpeded rise of COVID-19 case rates in the US, when in comparison, other countries with stricter regulations (and better public compliance) have managed to control disease spread. 
 
@@ -124,6 +125,8 @@ Accordingly, as a team we have decided to leverage the provided dataset in order
 We hypothesize that a face mask mandate does indeed have a measurable & causal impact on containing the spread of COVID-19, even when taking into account age and socioeconomic demographics, social distancing adherence, and other related policies. This is visually represented in the causal diagram below. Our measurement goal is to assess the statistical significance and practical significance of statewide mandatory face mask usage policies in reducing the COVID-19 case rate. We will methodically include incremental covariates from the aforementioned categories in our regression models, in an effort to isolate the portion of case rate variability actually explained by implementation of a mandatory face mask policies. These other covariates, while important, will help absorb some of the “noise” not specifically associated with the implementation of a face mask policy.
 
 ![](images/intro_causal_diagram.png)
+
+\newpage
 
 ## Data
 
@@ -144,8 +147,6 @@ The Google Human mobility data is updated daily, and includes information on the
 There are a total of 6 data types in the dataset: character, numeric, integer, factor, dates, and logical. Any variable with “date” in the name is read in as a date. Logical variables include 'mask_use,' 'mask_legal,' and 'maskbus_use.' Variables read in as factors include 'gov_party,' and 'tests_positive.' The only character variable is the state name. Finally, all other variables are read in as either numeric or an integer. All numeric and integer values are real and nonnegative.
 
 Some of the data was missing from the initial table and was manually populated using an external website$^1$ so we could calculate the number of days of shelter in place. Although some of the states had not yet ended their shelter in place policies, we chose 10/30/2020 as the absolute cutoff for our analysis. The table on the next page shows the data populated manually (empty cells were left as is):
-
-\newpage
 
 | State       | beg_shelter_date | end_shelter_date |
 |-------------|------------------|------------------|
@@ -257,8 +258,6 @@ Before conducting a comparison between the dependent and main independent variab
 ```{r fig.height = 3, fig.width = 5}
 vis_miss(df %>% select(mask_use)) + theme(axis.text.x = element_text(angle = 0, hjust = 0.5))
 ```
-
-\newpage
 
 As the mask use policy variable is binary, we only need to ensure that there are 51 observations (51 as the District of Columbia is included in the dataset):
 
@@ -779,6 +778,9 @@ $$
 \end{aligned}
 $$
 
+
+\newpage
+
 ### Model summary
 
 ```{r model_3 summary, results = "asis", warning=FALSE}
@@ -819,8 +821,6 @@ According to Model 3, states that have adopted mandatory mask use would expect t
 ## CLM Assumptions & Limitations
 
 In theory, our EDA process should have helped us choose the most optimal variables (and subsequent transformations) to use in our models. Nevertheless, we must assess how good our models are at explaining the causal relationship between the dependent variable (case rate per 100,000), and our primary independent variable of interest (state implementation of a mask mandate) or whether they require further modification and optimization. As such we will consider whether they meet the 5 key assumptions required for the Classic Linear Model (CLM). Moreover, we can also utilize CLM assessment techniques to demonstrate how our iterative model building process has optimized our causal model.   
-
-\newpage
 
 ### 1) Independent & Identically Distributed Random Variables
 
