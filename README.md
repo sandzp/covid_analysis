@@ -1,7 +1,9 @@
 # Does a Statewide Mask-Use Mandate Affect COVID-19 Case Rate?
 
-## Authors
+## Authors \*
 Lucas Brossi, Amar Chatterjee, Daniel Chow, Sandip Panesar
+
+\* *All authors contributed equally to this project and final report*
 
 ## Description
 
