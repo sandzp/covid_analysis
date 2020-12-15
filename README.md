@@ -38,4 +38,4 @@ An acid test to test the robustness of Model 2. Model 3 purposely includes varia
 We subsequently discuss the validity of the 3 models based upon CLM assumptions and further consider potentially omitted variables. 
 
 ## References
-Data taken from [Google's Mobility Reports](https://www.google.com/covid19/mobility/)
+Data taken from the [CDC](https://www.cdc.gov/covid-data-tracker/#cases/), [Kaiser Family Foundation](https://www.kff.org/statedata/), and [Google's Mobility Reports](https://www.google.com/covid19/mobility/).
